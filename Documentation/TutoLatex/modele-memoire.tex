@@ -1,0 +1,223 @@
+\documentclass[a4paper,11pt]{book}
+\usepackage[francais]{babel}
+\usepackage[table]{xcolor}
+\usepackage{amsmath}
+\usepackage[utf8]{inputenc}
+\usepackage{textcomp}
+\usepackage{gensymb}
+%\usepackage[francais]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{makeidx}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{float}
+\usepackage{relsize}
+\usepackage{amsmath,amsfonts,amssymb}
+\usepackage{multirow}
+\usepackage{layout}
+\usepackage{amsthm}
+\usepackage{lmodern}
+\usepackage{fancyhdr}
+\usepackage{enumitem}
+\usepackage{geometry}
+\geometry{hmargin=2.2cm,vmargin=2.9cm}
+
+ 
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyfoot[C]{\thepage}
+    
+\theoremstyle{theo}
+%\newtheorem{thm}{Theorem}
+
+\newtheorem{theorem}{Théorème}[section]
+\newtheorem{corollary}{Corollaire}[theorem]
+\newtheorem{lemma}[theorem]{Lemme}
+\newtheorem{prop}{Proposition}
+	
+
+\newcommand*{\QEDA}{\hfill\ensuremath{\blacksquare}}%
+\newcommand*{\QEDB}{\hfill\ensuremath{\square}}%
+\newcommand*{\R}{{\rm I\!R}}
+\newcommand*{\Hi}{\mathcal{H}}
+
+\newcommand\vbar[1]{\vrule\begin{tabular}[t]{l}#1\end{tabular}}
+\newcommand{\bproof}{\begin{itemize} \item {\bf D\'emonstration.
+\hspace{0.2cm}}}
+\newcommand{\eproof}{\end{itemize}}
+\usepackage[memoire]{PageDeGarde}
+\def\CadreBleuhpos{500}
+
+\def\entetehpos{-50}
+\def\entetevpos{540}
+
+
+%===================================
+%  Fin renseignements a completer
+%===================================
+
+
+% ==================================================================
+%               FIN TITLE PAGE 
+% ==================================================================
+\setlength{\headheight}{15.35403pt}
+\begin{document}
+\let\cleardoublepage\clearpage
+\title{ \usefont{T1}{ptm}{m}{n} Titre du M\'emoire}
+
+\annee{2017-2018}
+
+\Auteur{Nom Pr\'enom,}{adresse-mail}
+
+\Encadrant{Nom Pr\'enom de l'encadrant}{MCF à l'Université des Antilles}
+
+
+\maketitle
+
+\newpage
+\section*{Remerciements}
+\bigskip
+\pagestyle{plain}
+\bigskip
+\newpage 
+\tableofcontents
+\newpage
+\chapter{Introduction }
+\
+Il s'agit d'\'etudier......
+\textbf{Remarque} : 
+\begin{itemize}
+\item Le système est d'ordre 2 ....$\nabla^2\phi(x(.))$. 
+\item Par contre, le second système est d'ordre 3.
+\end{itemize}
+\par
+
+
+\bigskip
+\thispagestyle{empty}
+
+
+\newpage
+
+
+\newpage
+\chapter{\'Etude analytique}
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\leftmark}
+\fancyfoot[C]{\thepage}
+\section{Équivalence des systèmes considérés}
+Considérons les équations (1.1)-(1.2) et supposons que les constantes $a,b,\alpha$ et $\beta$ sont telles que 
+\begin{equation} \beta \neq 0, \quad b=1/\beta, \quad a=\alpha-1/\beta \end{equation}
+\begin{theorem} : Supposons $\Phi$ deux fois différentiable, $\Psi$ différentiable sur $\Hi$ et $(2.1)$ vérifié. Soient $(x_0,v_0,y_0)\in\Hi^3$ tels que $v_0+\beta\nabla\Phi(x_0) + ax_0+by_0=0$, alors les assertions suivantes sont équivalentes 
+\begin{enumerate}[label=(\roman*)]
+\item $x$ est une solution de $(1.1)$ deux fois différentiable avec les conditions initiales $x(0)=x_0$ et $\dot{x}(0)=v_0$.
+\item Il existe une fonction $y$ telle que $(x,y)$ soit une solution différentiable de $(1.2)$ avec les conditions initiales $x(0)=x_0$ et $y(0)=y_0$
+\end{enumerate}
+\end{theorem}
+\noindent\textbf{Démonstration} : \quad $(i)\implies (ii)$ Considérons la fonction $y$ définie par la première équation de $(1.2)$.
+\begin{equation}
+ \dot{x}+\beta\nabla\Phi(x) + \left(\alpha-\frac{1}{\beta}\right)x + \frac{1}{\beta}y=0
+\end{equation}
+\section{Existence et unicité des solutions }
+\subsection{Cas où le potentiel $\Phi$ est régulier}
+On s'intéresse ici à des résultats d'existence et d'unicité des équations $(1.1)$ et $(1.2)$. 
+\begin{equation} \left\{
+\begin{array}{l l l}
+\dot{x}(t) + \nabla\Phi(x(t)) + ax(t) + by(t) &=& 0\\
+\dot{y}(t) - \nabla\Psi(x(t)) + ax(t) + by(t) &=& 0 \\
+x(0)=x_0, ~y(0)=y_0 
+\end{array}
+\right. 
+\end{equation}
+où $(x_0,y_0) \in \Hi^2$ et $a,b$ sont des réels	tels que
+\medskip
+\begin{description}
+\item[(CP)] $b\geq 0, ~a+b\geq 0$
+\end{description}
+\medskip
+et les fonction $\Phi$ et $\Psi$ sont supposées remplir les conditions suivantes
+\medskip
+\begin{description}
+\item[(A1)] $\Psi : \Hi \to \R$ est différentiable, et à gradient lipschitzien sur des parties bornées de $\Hi$.
+\medskip
+\item[(A2)] $\Phi : \Hi \to \R$ est différentiable, convexe et à gradient lipschitzien sur les parties bornées de $\Hi$.
+\medskip
+\item[(A3)] $\Theta = \Phi+\Psi$ est minoré	sur $\Hi$.
+\end{description}
+\bigskip
+\textbf{Remarque} : A chaque solution $(x,y)$ de $(2.3)$ on associe la fonction \og énergie \fg ~$E$ définie pour $t\geq 0$ par 
+$$ E(t) = b\Theta(x(t))+\frac{1}{2}||\dot{x}(t)||^2 $$
+L'existence des solutions découle alors de la décroissance de cette fonction \og énergie \fg ~$E$.
+
+\begin{lemma}
+Supposons que les conditions \textbf{\upshape(A1), (A2)} et \textbf{\upshape (CP)} soient satisfaites, supposons de plus que $(x,y)$ soit une solution de $(2.3)$ définie sur un intervalle non vide $[0,T_m[$. Alors $E$ est une fonction décroissante du temps et plus précisément, on a $ \forall s,t \in {\rm I\!R}, ~ 0\leq s \leq t < T_m$
+\begin{equation}
+\frac{1}{2}||\dot{x}(t)||^2 +  b\Theta(x(t))+(a+b)\int_{s}^t||\dot{x}(\tau)||^2 d\tau \leq \frac{1}{2}||\dot{x}(s)||^2 +  b\Theta(x(s))
+\end{equation}
+\end{lemma}
+
+\begin{theorem}
+Supposons que les conditions \textbf{\upshape(A1), (A2), (A3)} et \textbf{\upshape(CP)} soient satisfaites alors le problème $(2.3)$ admet une unique solution globale $(x,y)$ définie sur $[0;+\infty[$ et on a les propriétés suivantes :
+\begin{description}
+\item[(r1)] $x,y\in C^1([0;+\infty[;\Hi)$.
+\medskip
+\item[(r2)] $\dot{x}\in L^{\infty}([0;+\infty[;\Hi)$ et si de plus $a+b>0$ alors $\dot{x}\in L^2([0;+\infty[;\Hi)$
+\medskip
+\item[(r3)] L'énergie $E(t) = (1/2)|\dot{x}(t)|^2+b\Theta(x(t))$ est une fonction décroissante du temps.
+\end{description}
+\end{theorem}
+
+
+\subsection{Cas où le potentiel $\phi$ n'est pas régulier}
+
+\subsubsection{L'approximation de Moreau-Yosida}
+Cette fois ci, au lieu d'étudier le problème $(2.3)$ , nous considérons le système suivant
+\begin{equation} \left\{
+\begin{array}{l l l}
+\dot{x}(t) + \partial\Phi(x(t)) + ax(t) + by(t) &\ni& 0 \quad \text{pour presque tout} \quad t>0\\
+\dot{y}(t) - \nabla\Psi(x(t)) + ax(t) + by(t) &=& 0 \quad \text{pour} \quad t> 0 \\
+x(0)=x_0, ~y(0)=y_0 
+\end{array}
+\right. 
+\end{equation}
+ 
+$$ \dot{F}(t) = -b\langle \nabla\Theta(x(t)),x(t)-q\rangle $$
+D'où $F$ décroissante pour $q\in S:=(\nabla\Theta)^{-1}(0)$
+car la fonction $t\mapsto  \langle \Theta(x(t)),x(t)-q\rangle \in L^1([0,+\infty[)$ et est lipschitzienne, (en effet, $x$ est bornée , $\nabla\Theta$ est lipschitzienne et on conclut avec l'inégalité de Cauchy-Schwarz).
+L'équation $(3.3)$ peut s'écrire sous la forme
+$$ \lim_{t\to+\infty} \langle \nabla\Phi(x(t))-\nabla\Phi(q),x(t)-q \rangle - \langle \nabla\Psi(x(t))-\nabla\Psi(q),x(t)-q \rangle = 0$$
+De plus, comme $\Phi$ et $\Psi$ sont supposés convexe, on a 
+$$ \langle \nabla\Phi(x(t))-\nabla\Phi(q),x(t)-q \rangle \geq 0 \quad \text{et} \quad \nabla\Psi(x(t))-\nabla\Psi(q),x(t)-q \rangle \geq 0$$
+D'où 
+\begin{equation}
+\displaystyle\lim_{t\to+\infty} \nabla\Phi(x(t))-\nabla\Phi(q),x(t)-q \rangle = 0
+\end{equation}
+En utilisant la convexité de $\Phi$, on a pour $z,q\in \Hi$
+$$  \Phi(q)\geq \Phi(z) + \langle\nabla\Phi(z),q-z\rangle \qquad \text{et} \qquad  \Phi(z)\geq \Phi(q) + \langle\nabla\Phi(q),z-q\rangle $$
+Ce qui nous donne $N(z,q) \geq 0$ et $\langle -\nabla\Phi(q),z-q,\rangle\geq \Phi(q)-\Phi(z)$, d'où finalement
+$$ 0 \leq N(z,q) \leq \langle \nabla\Phi(z)-\nabla\Phi(q),z-q\rangle$$
+En particulier, pour $q\in S$ et en utilisant $(3.4)$, on en déduit que $\lim_{t\to+\infty} N(x(t),q)=0$, puis comme $\overline{w},\overline{v}\in S$, on a, en utilisant $(3.2)$, 
+$$\lim_{t\to+\infty} R_n = (a+b)||\overline{v}-\overline{w}||^2=0$$
+d'où finalement $\overline{w}=\overline{v}$. \QEDA
+
+\chapter*{Conclusion}
+Ce T.E.R....... 
+\newpage
+\begin{thebibliography}{9}
+\bibitem{seco}
+Hédy Attouch, Paul-\'Emile Maingé, Patrick Redont, \emph{A second-order differential system with hessian-driven damping; application to non-elastic shock laws}, 2013
+\bibitem{attou}
+Hédy Attouch, \emph{Variational Convergence for Functions and Operators}, 1986
+\bibitem{Brezis}
+Haim Brézis, Analyse fontionnelle, 1987
+\bibitem{Brezis2}
+Haim Brézis, \emph{Opérateurs maximaux monotones et semie-groupes de contractions dans les espaces de Hilbert}, 1973
+\bibitem{Nawfal}
+Nawfal El Hage Hassan, \emph{Topologie générale et espaces normés}, 2011
+\end{thebibliography}
+\addcontentsline{toc}{chapter}{Références}
+\bibliographystyle{alpha}
+
+\end{document}
