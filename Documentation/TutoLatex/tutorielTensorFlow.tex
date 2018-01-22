@@ -22,10 +22,10 @@
 \usepackage{geometry}
 \usepackage{listings}
 \definecolor{darkWhite}{rgb}{0.94,0.94,0.94}
-\lstset{
+
+\lstdefinestyle{generalFrame}{
 aboveskip=3mm,
 belowskip=-2mm,
-backgroundcolor=\color{darkWhite},
 basicstyle=\footnotesize,
 breakatwhitespace=false,
 breaklines=true,
@@ -87,6 +87,29 @@ stringstyle=\color{gray},
 tabsize=4,
 title=\lstname,
 }
+
+\definecolor{darkseagreen}{rgb}{0.56, 0.74, 0.56}
+\definecolor{darkpastelblue}{rgb}{0.47, 0.62, 0.8}
+
+\lstnewenvironment{mypython}
+  {\lstset{language=python,
+  style =generalFrame,
+  backgroundcolor=\color{darkWhite} }}
+  {}
+
+\lstnewenvironment{mybash}
+  {\lstset{language=python,
+  	style=generalFrame,
+	backgroundcolor=\color{darkseagreen} }}
+  {}
+
+\lstnewenvironment{myoutput}
+  {\lstset{language=bash,
+  	style=generalFrame,
+	backgroundcolor=\color{darkpastelblue} }}
+  {}
+
+
 \geometry{hmargin=2.2cm,vmargin=2.9cm}
 
  
@@ -170,18 +193,18 @@ Tout d'abord, TensorFlow s'appuie sur des concepts de programmation très diffé
 On veut que notre programme prenne une valeur réelle (x), calcule une valeur  $y = W*x+b$ avec $W$ et $b$ des valeurs réelles que notre programme sera appelé a modifier plus tard.
 
 le code correspondant en python est le suivant
-\begin{lstlisting}
+\begin{mypython}
 x = 2
 W = 0.3
 b = -0.3
 y = W*x+b
 print(y)
-\end{lstlisting}
+\end{mypython}
 
 La sortie de ce programme serait :
-\begin{verbatim}
+\begin{myoutput}
 0.3
-\end{verbatim}
+\end{myoutput}
 
 ici, $W$, $b$ , $x$ et $y$ sont des variables du programmes.
 Néanmoins, dans le contexte de notre programme, elles jouent des rôles très différents :
@@ -201,7 +224,7 @@ La programmation en TensorFlow, met en place cette différence.
 Notons qu'il existe aussi la notion de constante, non présentée ici, mais facile a appréhender.
 
 Le code correspondant en TensorFlow est le suivant :
-\begin{lstlisting}
+\begin{mypython}
 import tensorflow as tf
 
 x = tf.placeholder(tf.float32)
@@ -212,17 +235,129 @@ b = tf.Variable([-.3], dtype=tf.float32)
 y = W*x + b
 
 print(y)
-\end{lstlisting}
+\end{mypython}
 
 La sortie de ce programme est alors surprenante :
-\begin{verbatim}
+\begin{myoutput}
 Tensor("add:0", dtype=float32)
-\end{verbatim}
+\end{myoutput}
 
 De fait, nous n'avons pas calculé la valeur de $y$.\\
 En fait notre programme ne manipule pas des variables au sens traditionnel, mais explique les dépendances entres les différents éléments de notre programme (ce sont des nœuds du graphes de calcul). TensorFlow s'appuie sur ce graphe de calcul, sur lequel nous reviendrons plus tard pour comprendre son intérêt.\\
 
 Le graphe correspondant est représenté ci-dessous pour information.
+
+\newpage
+
+On retrouve dans ce graphes la présence des deux variables ($W$ et $b$), le placeholder $x$, et un noeud $add$ dont la sortie correspond à $y$.
+
+
+Par ailleurs, les variables au sens TensorFlow sont des nœuds de calculs qui peuvent être modifiés. Elle ne sont pas initialisées par leur déclaration. Il faudra explicitement demander leur initialisation pour qu'elles agissent comme on s'y attend.
+Il s'agit maintenant pour que notre programme calcule bien la valeur voulue de :
+\begin{itemize}
+\item construire le graphe de calcul a partir des informations précédentes.
+\item initialiser les variables $W$ et $b$
+\item lancer le calcul de y avec une valeur choisie pour $x$...
+\end{itemize}
+
+Ajoutons les codes suivants à notre programme
+\begin{mypython}
+sess = tf.Session()
+\end{mypython}
+Le code ci-dessus construit le graphe.
+\begin{mypython}
+init = tf.global_variables_initializer()
+sess.run(init)
+\end{mypython}
+Le code ci-dessus initialise toutes les variables du programme (W et b). En fait, ce code construit un noeud de calcul correspondant a l'initialisation (première ligne) et lance le calcul correspondant (deuxième ligne).
+
+\begin{mypython} 
+resu = sess.run(y, {x:2}) 
+print(resu)
+\end{mypython}
+Ce code lance le calcul de y, en prenant soin de placer la valeur 2 dans le placeholder x et afficher le résultat attendu
+\begin{myoutput}
+[0.3]
+\end{myoutput}
+Pour comprendre l'intérêt de ces concepts de graphe de calcul, ajoutons à la fin de notre programme existant le code suivant :
+
+\begin{mypython} 
+resu = sess.run(y, {x:[1, 2, 3]}) 
+print(resu)
+\end{mypython} 
+
+Cette fois ci, les sorties sont :
+
+\begin{mypython} 
+[0.3]
+[0.  0.3 0.6]
+\end{mypython} 
+
+Nous avons en fait lancé deux runs (deux calculs de y). La première fois, x est un réel, la seconde fois x est un tableau de réels. Dans le second cas, pour chaque valeur de x, une valeur est calculée pour y.
+Notre programme a donc mis en place une procédure de calcul (le graphe de calcul) que l'on peut utiliser de multiples fois, avec différentes valeurs d'entrées (qui de plus prennent des formes différentes).
+Une grande partie de la force de TensorFlow tient dans ces notions.
+Voici donc le code du programme complet :
+
+\begin{mypython} 
+import tensorflow as tf
+
+x = tf.placeholder(tf.float32, name="x")
+
+W = tf.Variable([.3], dtype=tf.float32, name="W")
+b = tf.Variable([-.3], dtype=tf.float32, name="b")
+
+y = W*x + b
+
+print(y)
+
+sess = tf.Session()
+
+init = tf.global_variables_initializer()
+sess.run(init)
+
+resu = sess.run(y, {x:2}) 
+print(resu)
+
+resu = sess.run(y, {x:[1, 2, 3]}) 
+print(resu)
+\end{mypython} 
+
+\section{Premiers pas avec Tensorboard}
+
+TensorBoard est l'outil de visualisation associé à TensorFlow. Il permet de visualiser le graphe de calcul, mais aussi des valeurs importantes retenues lors des calculs exécutés sur ce graphe de calcul.
+Pour sélectionner les informations a visualiser, nous l'indiquerons a notre programme TensorFlow. Le programme sauvegardera ces informations dans un répertoire spécifique.
+
+On pourra alors lancer l'exécutable TensorBoard qui va analyser ce répertoire, créer un serveur web local que l'on pourra consulter pour visualiser nos informations...
+Voyons comment tout ceci se fait.
+
+
+Ajout de code dans le programme TensorFlow (a la fin du programme précédent) :
+\begin{mypython}
+pathLog="./pathLog/";
+writer = tf.summary.FileWriter(pathLog, sess.graph)
+writer.close()
+\end{mypython}
+Ici, on choisit le répertoire (répertoire de Log) dans lequel seront stockées les informations importantes, et on crée un objet permettant d'écrire les informations de notre programme sur le disque. Ici, nous ne sauvons que le graphe de calcul. Enfin, on ferme cet objet.
+On lance notre programme TensorFlow 
+\begin{mybash}
+python .\premiersPas.py
+\end{mybash}
+On lance ensuite TensorBoard sur le répertoire de Log 
+
+\begin{mybash}
+tensorboard.exe --logdir=./pathLog
+\end{mybash}
+
+Enfin, on ouvre un navigateur dans lequel on indique l'URL de consultation. Cette url correspond a l'adresse IP de la machine sur laquelle on travaille, et TensorBoard utilise le port 6006 pour son serveur web. Notons que la fenetre
+Cette adresse IP est obtenue sous windows avec la commande 
+\begin{mybash}
+ipconfig
+\end{mybash}
+
+Notre IP étant 10.2.5.37, l'url complète est http://10.2.5.37:6006
+
+Voici une capture de la visualisation obtenue :
+
 
 \chapter*{Conclusion}
 Ce T.E.R....... 
