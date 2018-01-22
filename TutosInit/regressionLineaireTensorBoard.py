@@ -31,6 +31,8 @@ for i in range(1000):
   writer.add_summary(summary, i)
   
 print("(W,b finaux) :", sess.run([W, b]))
+print("Resultats en Apprentissage :", sess.run(sortieCalculee,{x: [1, 2, 3, 4]}))
+print("Resultats en Prediction :", sess.run(sortieCalculee,{x: [1.5, 1.3, 2.1, 4.7]}))
 
 
 writer.close()
