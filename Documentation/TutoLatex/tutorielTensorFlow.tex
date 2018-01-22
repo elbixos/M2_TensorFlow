@@ -20,6 +20,73 @@
 \usepackage{fancyhdr}
 \usepackage{enumitem}
 \usepackage{geometry}
+\usepackage{listings}
+\definecolor{darkWhite}{rgb}{0.94,0.94,0.94}
+\lstset{
+aboveskip=3mm,
+belowskip=-2mm,
+backgroundcolor=\color{darkWhite},
+basicstyle=\footnotesize,
+breakatwhitespace=false,
+breaklines=true,
+captionpos=b,
+commentstyle=\color{red},
+deletekeywords={...},
+escapeinside={\%*}{*)},
+extendedchars=true,
+framexleftmargin=16pt,
+framextopmargin=3pt,
+framexbottommargin=6pt,
+frame=tb,
+keepspaces=true,
+keywordstyle=\color{blue},
+language=Python,
+literate=
+{²}{{\textsuperscript{2}}}1
+{⁴}{{\textsuperscript{4}}}1
+{⁶}{{\textsuperscript{6}}}1
+{⁸}{{\textsuperscript{8}}}1
+{€}{{\euro{}}}1
+{é}{{\'e}}1
+{è}{{\`{e}}}1
+{ê}{{\^{e}}}1
+{ë}{{\¨{e}}}1
+{É}{{\'{E}}}1
+{Ê}{{\^{E}}}1
+{û}{{\^{u}}}1
+{ù}{{\`{u}}}1
+{â}{{\^{a}}}1
+{à}{{\`{a}}}1
+{á}{{\'{a}}}1
+{ã}{{\~{a}}}1
+{Á}{{\'{A}}}1
+{Â}{{\^{A}}}1
+{Ã}{{\~{A}}}1
+{ç}{{\c{c}}}1
+{Ç}{{\c{C}}}1
+{õ}{{\~{o}}}1
+{ó}{{\'{o}}}1
+{ô}{{\^{o}}}1
+{Õ}{{\~{O}}}1
+{Ó}{{\'{O}}}1
+{Ô}{{\^{O}}}1
+{î}{{\^{i}}}1
+{Î}{{\^{I}}}1
+{í}{{\'{i}}}1
+{Í}{{\~{Í}}}1,
+morekeywords={*,...},
+numbers=none,
+numbersep=10pt,
+numberstyle=\tiny\color{black},
+rulecolor=\color{black},
+showspaces=false,
+showstringspaces=false,
+showtabs=false,
+stepnumber=1,
+stringstyle=\color{gray},
+tabsize=4,
+title=\lstname,
+}
 \geometry{hmargin=2.2cm,vmargin=2.9cm}
 
  
@@ -64,13 +131,13 @@
 \setlength{\headheight}{15.35403pt}
 \begin{document}
 \let\cleardoublepage\clearpage
-\title{ \usefont{T1}{ptm}{m}{n} Titre du M\'emoire}
+\title{ \usefont{T1}{ptm}{m}{n} Tutoriel TensorFlow}
 
 \annee{2017-2018}
 
-\Auteur{Nom Pr\'enom,}{adresse-mail}
+\Auteur{IKNI Layachi}{}
 
-\Encadrant{Nom Pr\'enom de l'encadrant}{MCF à l'Université des Antilles}
+\Encadrant{Pag\'e Vincent}{MCF à l'Université des Antilles}
 
 
 \maketitle
@@ -92,6 +159,19 @@ Il s'agit d'\'etudier......
 \item Par contre, le second système est d'ordre 3.
 \end{itemize}
 \par
+
+\begin{lstlisting}
+n=10;
+
+u = zeros(n,1);
+u(1:2) = [1;1];
+
+for i = 1 : n-2;
+  u(i+2) = u(i+1) + u(i);
+end
+
+disp(u)
+\end{lstlisting}
 
 
 \bigskip
