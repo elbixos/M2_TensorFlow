@@ -249,7 +249,7 @@ Le graphe correspondant est représenté ci-dessous pour information.
 \begin{figure}[H]
 
 \begin{center}
-\includegraphics[width=10cm]{./figures/graph_addition.png} 
+\includegraphics[width=10cm]{./figures/graphAddition.png} 
 \end{center}
 \caption{Graphe de calcul simple}
 \end{figure}
@@ -371,7 +371,7 @@ Voici une capture de la visualisation obtenue :
 \begin{figure}[H]
 
 \begin{center}
-\includegraphics[width=10cm]{./figures/premierTensorFlow.png} 
+\includegraphics[width=10cm]{./figures/premierTensorBoard.png} 
 \end{center}
 \caption{La fenêtre de visualisation de TensorBoard}
 \end{figure}
@@ -501,5 +501,81 @@ writer = tf.summary.FileWriter(pathLog, sess.graph)
 writer.close()
 \end{mypython}
 Voici également le graphe de calcul que notre programme a utilisé
+\begin{figure}[H]
+
+\begin{center}
+\includegraphics[width=10cm]{./figures/graphRegressionLineaire.png} 
+\end{center}
+\caption{Graphe de calcul pour la régression linéaire}
+\end{figure}
+
+En l'état, une partie de ce graphe est facile a expliquer (en bas a gauche), le reste est assez... mystérieux mais est clairement associé a la descente du gradient...
+
+\section{Suivi de performance dans TensorBoard}
+Nous voulons suivre l’évolution de l'erreur au cours de l'apprentissage des $W$,$b$ du programme précédent et la visualiser à l'aide de TensorBoard.
+Il va falloir modifier notre programme TensorFlow pour logger cette erreur. Les lignes à insérer étant réparties un peu partout, nous indiquerons chaque modification séparément et fourniront le code complet en fin de section.
+
+Tout d'abord, il faut signaler que l'on s'intéresse à l'erreur. Ceci est fait par la ligne suivante :
+\begin{mypython}
+tf.summary.scalar('erreur quadratique', erreur)
+\end{mypython}
+De ce que nous avons compris, on peut s’intéresser à plusieurs paramètres, et il faudra les fusionner pour les logger avec la ligne suivante :
+\begin{mypython}
+merged = tf.summary.merge_all()
+\end{mypython}
+Lors de chaque run, pendant l’entraînement, il faudra demander le calcul de ce merged. Enfin, le résumé devra être sauvé grâce au writer de TensorBoard... 
+\begin{mypython}
+for i in range(1000):
+  summary, _ = sess.run([merged,train], {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]})
+  writer.add_summary(summary, i)
+\end{mypython}
+Si une partie des notions utilisées ici nous échappe, voici néanmoins un code complet, fonctionnel :
+\begin{mypython}
+import tensorflow as tf
+
+## Définition des variables 
+W = tf.Variable([.3], dtype=tf.float32, name="W")
+b = tf.Variable([-.3], dtype=tf.float32, name="b")
+x = tf.placeholder(tf.float32, name="x")
+sortieCalculee = W*x + b
+
+sortieVoulue = tf.placeholder(tf.float32, name="sortieVoulue")
+
+squared_deltas = tf.square(sortieCalculee - sortieVoulue)
+erreur = tf.reduce_sum(squared_deltas)
+
+
+optimizer = tf.train.GradientDescentOptimizer(0.01)
+train = optimizer.minimize(erreur)
+
+sess = tf.Session()
+
+# Configuration de TensorBoard
+pathLog="./pathLog/";
+writer = tf.summary.FileWriter(pathLog, sess.graph)
+tf.summary.scalar('erreur quadratique', erreur)
+#tf.summary.scalar('W', W)
+merged = tf.summary.merge_all()
+
+init = tf.global_variables_initializer()
+sess.run(init) # reset values to incorrect defaults.
+for i in range(1000):
+  summary, _ = sess.run([merged,train], {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]})
+  writer.add_summary(summary, i)
+  
+print("(W,b finaux) :", sess.run([W, b]))
+
+
+writer.close()
+\end{mypython}
+
+Voici le résultat final visualisé dans TensorBoard
+\begin{figure}[H]
+
+\begin{center}
+\includegraphics[width=10cm]{./figures/TBScalarRegression.png} 
+\end{center}
+\caption{Visualisation de l'évolution de l'erreur lors de l'apprentissage}
+\end{figure}
 
 \end{document}
