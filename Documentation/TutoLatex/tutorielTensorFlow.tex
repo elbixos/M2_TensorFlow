@@ -186,7 +186,9 @@ Pour l'installation, nous avons suivi les instructions du tutoriel officiel qui 
 https://www.tensorflow.org/install/
 
 
-\section{Premiers concepts de TensorFlow}
+\section{Présentation TensorFlow et TensorBoard}
+
+\subsection{Premiers concepts de TensorFlow}
 
 Tout d'abord, TensorFlow s'appuie sur des concepts de programmation très différents d'une programmation standard python. Pour bien les comprendre, prenons un exemple :
 
@@ -328,7 +330,7 @@ resu = sess.run(y, {x:[1, 2, 3]})
 print(resu)
 \end{mypython} 
 
-\section{Premiers pas avec Tensorboard}
+\subsection{Premiers pas avec Tensorboard}
 
 TensorBoard est l'outil de visualisation associé à TensorFlow. Il permet de visualiser le graphe de calcul, mais aussi des valeurs importantes retenues lors des calculs exécutés sur ce graphe de calcul.
 Pour sélectionner les informations a visualiser, nous l'indiquerons a notre programme TensorFlow. Le programme sauvegardera ces informations dans un répertoire spécifique.
@@ -379,7 +381,9 @@ Voici une capture de la visualisation obtenue :
 
 On retrouve ici le graphe précédent. Notez le sous graphe en haut a droite (noeud init) correspondant à l'initialisation des variables dont nous avons parlé précédemment. 
 
-\section{Premier apprentissage automatique}
+\chapter{Premier apprentissage automatique : Régression Linéaire}
+
+\section{Codage de la Régression Lineaire manuelle}
 Il s'agit du problème classique de régression linéaire. on se donne un ensemble de valeurs de $x$, et un ensemble de valeurs attendues pour chacun de ces $x$. L'objectif est de trouver la droite qui passe le plus près de tous ces points.
 \begin{mypython}
 import tensorflow as tf
@@ -579,7 +583,7 @@ Voici le résultat final visualisé dans TensorBoard
 \caption{Visualisation de l'évolution de l'erreur lors de l'apprentissage}
 \end{figure}
 
-\section{Première utilisation de TfEstimator}
+\section{Régression Linéaire avec TfEstimator}
 
 tf.estimator est une bibliothèque TensorFlow de haut niveau qui simplifie la mécanique de l'apprentissage automatique, notamment:
 \begin{itemize}
@@ -640,6 +644,190 @@ Le code est relativement simple. On peut noter que :
 \item on ne construit plus le graphe nous même
 \item On ne lance plus de run manuellement. Tout ceci est fait dans les fonctions train et evaluate.
 \end{itemize}
+
+\section{Régression Linéaire avec un modèle personnalisé pour TfEstimator}
+tf.estimator ne vous verrouille pas dans ses modèles prédéfinis. Supposons que nous voulions créer un modèle personnalisé qui n'est pas intégré dans TensorFlow, en conservant  l'abstraction de haut niveau de jeu de données, l' alimentation, la formation, etc. de tf.estimator. Içi, nous allons implémenter notre propre modèle équivalent au LinearRegressor.
+Pour définir un modèle personnalisé qui fonctionne avec tf.estimator, nous devons utiliser tf.estimator.Estimator.  Nous fournissons simplement à Estimator une fonction \verb+model_fn+ qui indique à tf.estimator comment il peut évaluer les prédictions, les étapes d'entraînement et la perte. Le code est comme suit:
+\begin{mypython}
+import numpy as np
+import tensorflow as tf
+
+# Declare list of features, we only have one real-valued feature
+def ma_fn(features, labels, mode):
+  # Build a linear model and predict values
+  W = tf.get_variable("W", [1], dtype=tf.float64)
+  b = tf.get_variable("b", [1], dtype=tf.float64)
+  y = W*features['x'] + b
+  # Loss sub-graph
+  loss = tf.reduce_sum(tf.square(y - labels))
+  # Training sub-graph
+  global_step = tf.train.get_global_step()
+  optimizer = tf.train.GradientDescentOptimizer(0.01)
+  train = tf.group(optimizer.minimize(loss),
+                   tf.assign_add(global_step, 1))
+  # EstimatorSpec connects subgraphs we built to the
+  # appropriate functionality.
+  return tf.estimator.EstimatorSpec(
+      mode=mode,
+      predictions=y,
+      loss=loss,
+      train_op=train)
+
+estimator = tf.estimator.Estimator(model_fn=ma_fn)
+# define our data sets
+x_train = np.array([1., 2., 3., 4.])
+y_train = np.array([0., -1., -2., -3.])
+x_eval = np.array([2., 5., 8., 1.])
+y_eval = np.array([-1.01, -4.1, -7., 0.])
+input_fn = tf.estimator.inputs.numpy_input_fn(
+    {"x": x_train}, y_train, batch_size=4, num_epochs=None, shuffle=True)
+train_input_fn = tf.estimator.inputs.numpy_input_fn(
+    {"x": x_train}, y_train, batch_size=4, num_epochs=1000, shuffle=False)
+eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+    {"x": x_eval}, y_eval, batch_size=4, num_epochs=1000, shuffle=False)
+
+# train
+estimator.train(input_fn=input_fn, steps=1000)
+# Here we evaluate how well our model did.
+train_metrics = estimator.evaluate(input_fn=train_input_fn)
+eval_metrics = estimator.evaluate(input_fn=eval_input_fn)
+print("train metrics: %r"% train_metrics)
+print("eval metrics: %r"% eval_metrics)
+\end{mypython}
+
+\chapter{Première Classification : Base IRIS}
+\section{ Classification de la base IRIS avec un DNN }
+Nous  allons utiliser  tf.estimator  pour construire un classificateur de réseau neuronal et l'entraîner sur l' ensemble de données Iris pour prédire les espèces de fleurs basées sur la géométrie des sépales / pétales. Pour cet exemple  les données Iris ont été randomisées et divisées en deux CSV distincts:
+\begin {itemize}
+\item Un ensemble d'apprentissage de 120 échantillons ( \verb+iris_training.csv+ )
+\item	Un ensemble de test de 30 échantillons ( \verb+iris_test.csv+ ).
+\end{itemize}
+ Voici les  codes pour construire le code complet  du classificateur de réseau neuronal:
+\begin{mypython}
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+import os
+from six.moves.urllib.request import urlopen
+
+import numpy as np
+import tensorflow as tf
+
+# Data sets
+IRIS_TRAINING = "iris_training.csv"
+IRIS_TRAINING_URL = "http://download.tensorflow.org/data/iris_training.csv"
+
+IRIS_TEST = "iris_test.csv"
+IRIS_TEST_URL = "http://download.tensorflow.org/data/iris_test.csv"
+
+def main():
+  # If the training and test sets aren't stored locally, download them.
+  if not os.path.exists(IRIS_TRAINING):
+    raw = urlopen(IRIS_TRAINING_URL).read()
+    with open(IRIS_TRAINING, "wb") as f:
+      f.write(raw)
+
+  if not os.path.exists(IRIS_TEST):
+    raw = urlopen(IRIS_TEST_URL).read()
+    with open(IRIS_TEST, "wb") as f:
+      f.write(raw)
+\end{mypython}
+ce code ci dessus importez  tous les modules nécessaires et définissez où télécharger et stocker l'ensemble de données et il télécharge les ensembles de formation et de test  s' ils ne sont pas stocker localement.
+\begin{mypython}
+training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
+      filename=IRIS_TRAINING,
+      target_dtype=np.int,
+      features_dtype=np.float32)
+  test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
+      filename=IRIS_TEST,
+      target_dtype=np.int,
+      features_dtype=np.float32)
+\end{mypython}
+ce code ci dessus  chargez les ensembles de formation  en utilisant la fonction \verb+training_set+ et les ensembles de  test utilisant la fonction \verb+test_set+.
+\begin{mypython}
+feature_columns = [tf.feature_column.numeric_column("x", shape=[4])]
+\end{mypython}
+cette fonction  définit les colonnes d'entités du modèle et construire les colonnes d'entités
+
+\begin{mypython}
+classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
+                                          hidden_units=[10, 20, 10],
+                                          n_classes=3,
+                                          model_dir="/tmp/iris_model")
+\end{mypython}
+
+cette fonction crée un DNN classifier  modèle ,  qui respecte  les arguments suivant:
+\begin{itemize}
+
+\item	L'ensemble des colonnes de caractéristiques .
+\item	Trois couches cachées , contenant 10, 20 et 10 neurones, respectivement.
+\item	Trois classes cibles, représentant les trois espèces d'Iris.
+\item Le répertoire dans lequel TensorFlow sauvegardera les données de point de contrôle et les résumés TensorBoard pendant l'apprentissage du modèle.
+
+\end{itemize}
+
+\begin{mypython}
+train_input_fn = tf.estimator.inputs.numpy_input_fn(
+      x={"x": np.array(training_set.data)},
+      y=np.array(training_set.target),
+      num_epochs=None,
+      shuffle=True)
+\end{mypython}
+ce code  produit le pipeline d'entrée.
+\begin{mypython}
+classifier.train(input_fn=train_input_fn, steps=2000)
+\end{mypython}
+cette fonction  train  et refait le train  2000 fois.
+
+\begin{mypython}
+train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
+      x={"x": np.array(training_set.data)},
+      y=np.array(training_set.target),
+      num_epochs=1,
+      shuffle=False)
+\end{mypython}
+ce code  définie les entrées teste.
+
+\begin{mypython}
+accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
+  print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+\end{mypython}
+ce code  évalue les \verb+test _set.data+  et le \verb+test_set.target+ et affiche  le résultat.  
+ 
+la sortie de ce programme serait :
+\begin{myoutput}
+Learning Accuracy: 1.000
+Test Accuracy: 0.966667
+\end{myoutput}
+
+\begin{mypython}
+new_samples = np.array(
+      [[6.9, 3.2, 4.5, 1.5],
+       [4.8, 3.1, 5.0, 1.7]], dtype=np.float32)
+  predict_input_fn = tf.estimator.inputs.numpy_input_fn(
+      x={"x": new_samples},
+      num_epochs=1,
+      shuffle=False)
+
+  predictions = list(classifier.predict(input_fn=predict_input_fn))
+  
+  for p in predictions :
+    chaine =p["classes"]
+    print ("classe ", chaine[0].decode()) 
+
+if __name__ == "__main__":
+    main()
+\end{mypython}
+
+ce programme récupère  affiche le résultat  et    les  class .
+la sortie de  ce programme (le programme complet ) serai:
+\begin{myoutput}
+Learning Accuracy: 1.000000
+Test Accuracy: 0.966667
+classe  1
+classe  2
+\end{myoutput}
 
 
 \end{document}
