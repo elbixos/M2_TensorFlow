@@ -21,6 +21,7 @@
 \usepackage{enumitem}
 \usepackage{geometry}
 \usepackage{listings}
+
 \definecolor{darkWhite}{rgb}{0.94,0.94,0.94}
 
 \lstdefinestyle{generalFrame}{
@@ -92,13 +93,13 @@ title=\lstname,
 \definecolor{darkpastelblue}{rgb}{0.47, 0.62, 0.8}
 
 \lstnewenvironment{mypython}
-  {\lstset{language=python,
+  {\lstset{language=Python,
   style =generalFrame,
   backgroundcolor=\color{darkWhite} }}
   {}
 
 \lstnewenvironment{mybash}
-  {\lstset{language=python,
+  {\lstset{language=bash,
   	style=generalFrame,
 	backgroundcolor=\color{darkseagreen} }}
   {}
@@ -577,5 +578,68 @@ Voici le résultat final visualisé dans TensorBoard
 \end{center}
 \caption{Visualisation de l'évolution de l'erreur lors de l'apprentissage}
 \end{figure}
+
+\section{Première utilisation de TfEstimator}
+
+tf.estimator est une bibliothèque TensorFlow de haut niveau qui simplifie la mécanique de l'apprentissage automatique, notamment:
+\begin{itemize}
+\item exécuter des boucles d'entraînement
+\item exécuter des boucles d'évaluation
+\item gérer des ensembles de données
+\end{itemize}
+
+tf.estimator définit de nombreux modèles courants.
+Utilisons le ici pour le problème précédent de régression linéaire
+\begin{mypython}
+# NumPy is often used to load, manipulate and preprocess data.
+import numpy as np
+import tensorflow as tf
+
+# Declare list of features. We only have one numeric feature. There are many
+# other types of columns that are more complicated and useful.
+feature_columns = [tf.feature_column.numeric_column("x", shape=[1])]
+
+# An estimator is the front end to invoke training (fitting) and evaluation
+# (inference). There are many predefined types like linear regression,
+# linear classification, and many neural network classifiers and regressors.
+# The following code provides an estimator that does linear regression.
+estimator = tf.estimator.LinearRegressor(feature_columns=feature_columns)
+
+# TensorFlow provides many helper methods to read and set up data sets.
+# Here we use two data sets: one for training and one for evaluation
+# We have to tell the function how many batches
+# of data (num_epochs) we want and how big each batch should be.
+x_train = np.array([1., 2., 3., 4.])
+y_train = np.array([0., -1., -2., -3.])
+x_eval = np.array([2., 5., 8., 1.])
+y_eval = np.array([-1.01, -4.1, -7, 0.])
+
+input_fn = tf.estimator.inputs.numpy_input_fn(
+    {"x": x_train}, y_train, batch_size=4, num_epochs=None, shuffle=True)
+
+train_input_fn = tf.estimator.inputs.numpy_input_fn(
+    {"x": x_train}, y_train, batch_size=4, num_epochs=1000, shuffle=False)
+
+eval_input_fn = tf.estimator.inputs.numpy_input_fn(
+    {"x": x_eval}, y_eval, batch_size=4, num_epochs=1000, shuffle=False)
+
+# We can invoke 1000 training steps by invoking the  method and passing the
+# training data set.
+estimator.train(input_fn=input_fn, steps=1000)
+
+# Here we evaluate how well our model did.
+train_metrics = estimator.evaluate(input_fn=train_input_fn)
+eval_metrics = estimator.evaluate(input_fn=eval_input_fn)
+
+print("train metrics: %r"% train_metrics)
+print("eval metrics: %r"% eval_metrics)
+\end{mypython}
+
+Le code est relativement simple. On peut noter que :
+\begin{itemize}
+\item on ne construit plus le graphe nous même
+\item On ne lance plus de run manuellement. Tout ceci est fait dans les fonctions train et evaluate.
+\end{itemize}
+
 
 \end{document}
