@@ -1,0 +1,6 @@
+TODO :
+
+- Comment afficher plusieurs figures dans tensorboard
+- Comment utiliser tensorboard avec tfestimator
+- Comprendre les DNN
+- Utiliser TensorFlow sur MNIST / FashionMNIST
