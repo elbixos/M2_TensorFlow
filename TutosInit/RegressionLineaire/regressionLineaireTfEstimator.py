@@ -10,7 +10,7 @@ feature_columns = [tf.feature_column.numeric_column("x", shape=[1])]
 # (inference). There are many predefined types like linear regression,
 # linear classification, and many neural network classifiers and regressors.
 # The following code provides an estimator that does linear regression.
-estimator = tf.estimator.LinearRegressor(feature_columns=feature_columns)
+estimator = tf.estimator.LinearRegressor(feature_columns=feature_columns,model_dir="./modelTfEstimator")
 
 # TensorFlow provides many helper methods to read and set up data sets.
 # Here we use two data sets: one for training and one for evaluation
