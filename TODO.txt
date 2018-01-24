@@ -1,0 +1,15 @@
+TODO :
+
+- Comment utiliser tensorboard avec tfestimator -> tuto regression
+- Comprendre les DNN
+- Utiliser TensorFlow sur MNIST (plusieurs modeles)
+- Utiliser TensorFlow sur FashionMNIST (plusieurs modeles)
+
+
+Done :
+- tutoriel Bases (graphe de calcul, placeholder, variables)
+- tutoriel Régression lineaire
+- Comment afficher plusieurs figures dans tensorboard
+- afficher plus proprement le graphe de calcul
+- Utiliser TensorFlow sur MNIST réseau monocouche
+
