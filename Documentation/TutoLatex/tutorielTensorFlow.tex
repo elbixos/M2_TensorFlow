@@ -733,22 +733,23 @@ def main():
     with open(IRIS_TEST, "wb") as f:
       f.write(raw)
 \end{mypython}
-ce code ci dessus importez  tous les modules nécessaires et définissez où télécharger et stocker l'ensemble de données et il télécharge les ensembles de formation et de test  s' ils ne sont pas stocker localement.
+Le code ci-dessus importe  tous les modules nécessaires et définit où télécharger et stocker l'ensemble de données : les bases d'apprentissage et de généralisation s'ils ne sont pas stockés localement.
+Ces bases sont au format \textbf{csv}.
 \begin{mypython}
 training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
       filename=IRIS_TRAINING,
       target_dtype=np.int,
       features_dtype=np.float32)
-  test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
+test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
       filename=IRIS_TEST,
       target_dtype=np.int,
       features_dtype=np.float32)
 \end{mypython}
-ce code ci dessus  chargez les ensembles de formation  en utilisant la fonction \verb+training_set+ et les ensembles de  test utilisant la fonction \verb+test_set+.
+Le code ci-dessus charge en mémoire les bases d'apprentissage et de généralisation. Notons la fonction en utilisant la fonction \verb+tf.contrib.learn.datasets.base.load_csv_with_header+ qui permet de charger des fichiers \textbf{csv}.
 \begin{mypython}
 feature_columns = [tf.feature_column.numeric_column("x", shape=[4])]
 \end{mypython}
-cette fonction  définit les colonnes d'entités du modèle et construire les colonnes d'entités
+Ce code prépare une variable pour les entrées du modèle (le vecteur de caractéristiques ou \textbf{feature vector}) et spécifie que \textbf{feature vector} est numériques et de dimension 4 (longueur des sépales, largeurs des sépales, longueur des pétales, largeur des pétales).
 
 \begin{mypython}
 classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
@@ -756,72 +757,87 @@ classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
                                           n_classes=3,
                                           model_dir="/tmp/iris_model")
 \end{mypython}
-
-cette fonction crée un DNN classifier  modèle ,  qui respecte  les arguments suivant:
+Ce code crée un Réseau de Neurones Profond (Deep Neural Network ou \textbf{DNN}) que l'on utilisera pour classifier nos données. Pour le construire on lui passe les informations suivantes :
 \begin{itemize}
-
-\item	L'ensemble des colonnes de caractéristiques .
-\item	Trois couches cachées , contenant 10, 20 et 10 neurones, respectivement.
-\item	Trois classes cibles, représentant les trois espèces d'Iris.
-\item Le répertoire dans lequel TensorFlow sauvegardera les données de point de contrôle et les résumés TensorBoard pendant l'apprentissage du modèle.
-
+\item la forme du \textbf{feature vector}.
+\item la topologie du réseau. Ici : trois couches cachées , contenant respectivement 10, 20 et 10 neurones.
+\item le nombre de classes attendues en sortie. Ici : Trois classes, représentant les trois espèces d'Iris.
+\item le répertoire dans lequel TensorFlow sauvegardera en particulier les données utilisées par  TensorBoard pour la visualisation.
 \end{itemize}
 
+Le code qui suit va lancer l'apprentissage. l'Estimator de TensorFlow impose la structure de code suivante :
+\begin{itemize}
+	\item on définit une fonction spécifiant :
+	\begin{itemize}	
+		\item le jeu de donnée utilisé (caractéristiques et labels).
+		\item le nombre d'\textbf{epochs} lors de l'apprentissage.
+		\item si les données doivent être présentées dans un ordre aléatoire
+	\end{itemize}
+	\item on lance l'entrainement qui utilise cette fonction un certain nombre de fois.
+\end{itemize}
 \begin{mypython}
 train_input_fn = tf.estimator.inputs.numpy_input_fn(
       x={"x": np.array(training_set.data)},
       y=np.array(training_set.target),
       num_epochs=None,
       shuffle=True)
-\end{mypython}
-ce code  produit le pipeline d'entrée.
-\begin{mypython}
+
 classifier.train(input_fn=train_input_fn, steps=2000)
 \end{mypython}
-cette fonction  train  et refait le train  2000 fois.
 
+On suit la même logique lorsqu'on veut évaluer le classifieur sur la base d'apprentissage, mais on lance cette fois la fonction d'évaluation du classifieur.
 \begin{mypython}
 train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
       x={"x": np.array(training_set.data)},
       y=np.array(training_set.target),
       num_epochs=1,
       shuffle=False)
-\end{mypython}
-ce code  définie les entrées teste.
 
-\begin{mypython}
-accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
-  print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+  
+accuracy_score = classifier.evaluate(input_fn=train_input_eval_fn)["accuracy"]
+print("\nLearning Accuracy: {0:f}\n".format(accuracy_score))
 \end{mypython}
-ce code  évalue les \verb+test _set.data+  et le \verb+test_set.target+ et affiche  le résultat.  
+
+Enfin, on évalue le classifieur sur la base de généralisation.
+\begin{mypython}
+test_input_fn = tf.estimator.inputs.numpy_input_fn(
+      x={"x": np.array(test_set.data)},
+      y=np.array(test_set.target),
+      num_epochs=1,
+      shuffle=False)
+accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
+print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+\end{mypython}
+
  
-la sortie de ce programme serait :
+la sortie de ce programme donne quelque chose comme : soit une précision en généralisation de 0.97%.
 \begin{myoutput}
 Learning Accuracy: 1.000
 Test Accuracy: 0.966667
 \end{myoutput}
 
+
+Si l'on souhaite prédire les classes de nouveaux exemples, on peut procéder comme suit en lançant la fonction de prédiction du classifieur, dont on affichera les résultats.
+
 \begin{mypython}
 new_samples = np.array(
       [[6.9, 3.2, 4.5, 1.5],
        [4.8, 3.1, 5.0, 1.7]], dtype=np.float32)
-  predict_input_fn = tf.estimator.inputs.numpy_input_fn(
+
+predict_input_fn = tf.estimator.inputs.numpy_input_fn(
       x={"x": new_samples},
       num_epochs=1,
       shuffle=False)
 
-  predictions = list(classifier.predict(input_fn=predict_input_fn))
+predictions = list(classifier.predict(input_fn=predict_input_fn))
   
-  for p in predictions :
+for p in predictions :
     chaine =p["classes"]
     print ("classe ", chaine[0].decode()) 
 
-if __name__ == "__main__":
-    main()
 \end{mypython}
 
-ce programme récupère  affiche le résultat  et    les  class .
-la sortie de  ce programme (le programme complet ) serai:
+La sortie du programme complet serait :
 \begin{myoutput}
 Learning Accuracy: 1.000000
 Test Accuracy: 0.966667
@@ -829,5 +845,21 @@ classe  1
 classe  2
 \end{myoutput}
 
+Ci dessous, les figures respectives de l'évolution des paramètres du réseau pendant l'apprentissage et du graphe de calcul.
+\begin{figure}[H]
+
+\begin{center}
+\includegraphics[width=16cm]{./figures/TensorBoardIrisDnn.png} 
+\end{center}
+\caption{Evolution des paramètres du réseau sur la base IRIS}
+\end{figure}
+
+\begin{figure}[H]
+
+\begin{center}
+\includegraphics[width=10cm]{./figures/graphIrisDNN.png} 
+\end{center}
+\caption{Graphe de calcul du DNN utilisé sur la base IRIS}
+\end{figure}
 
 \end{document}
