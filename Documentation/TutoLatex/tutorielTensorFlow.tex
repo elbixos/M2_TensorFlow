@@ -21,8 +21,8 @@
 \usepackage{enumitem}
 \usepackage{geometry}
 \usepackage{listings}
+\usepackage{eso-pic}
 
-\definecolor{darkWhite}{rgb}{0.94,0.94,0.94}
 
 \lstdefinestyle{generalFrame}{
 aboveskip=3mm,
@@ -89,13 +89,14 @@ tabsize=4,
 title=\lstname,
 }
 
+\definecolor{darkwhite}{rgb}{0.94,0.94,0.94}
 \definecolor{darkseagreen}{rgb}{0.56, 0.74, 0.56}
 \definecolor{darkpastelblue}{rgb}{0.47, 0.62, 0.8}
 
 \lstnewenvironment{mypython}
   {\lstset{language=Python,
   style =generalFrame,
-  backgroundcolor=\color{darkWhite} }}
+  backgroundcolor=\color{darkwhite} }}
   {}
 
 \lstnewenvironment{mybash}
@@ -119,63 +120,89 @@ title=\lstname,
 \fancyhead[L]{\leftmark}
 \fancyfoot[C]{\thepage}
     
-\theoremstyle{theo}
-%\newtheorem{thm}{Theorem}
-
-\newtheorem{theorem}{Théorème}[section]
-\newtheorem{corollary}{Corollaire}[theorem]
-\newtheorem{lemma}[theorem]{Lemme}
-\newtheorem{prop}{Proposition}
-	
-
-\newcommand*{\QEDA}{\hfill\ensuremath{\blacksquare}}%
-\newcommand*{\QEDB}{\hfill\ensuremath{\square}}%
-\newcommand*{\R}{{\rm I\!R}}
-\newcommand*{\Hi}{\mathcal{H}}
-
-\newcommand\vbar[1]{\vrule\begin{tabular}[t]{l}#1\end{tabular}}
-\newcommand{\bproof}{\begin{itemize} \item {\bf D\'emonstration.
-\hspace{0.2cm}}}
-\newcommand{\eproof}{\end{itemize}}
-\usepackage[memoire]{PageDeGarde}
-\def\CadreBleuhpos{500}
 
 \def\entetehpos{-50}
 \def\entetevpos{540}
 
-
-%===================================
-%  Fin renseignements a completer
-%===================================
+\newcommand{\HRule}{\rule{\linewidth}{0.5mm}}
 
 
-% ==================================================================
-%               FIN TITLE PAGE 
-% ==================================================================
+\newcommand{\blap}[1]{\vbox to 0pt{#1\vss}}
+\newcommand\AtUpperLeftCorner[3]{%
+\put(\LenToUnit{#1},\LenToUnit{\dimexpr\paperheight-#2}){\blap{#3}}%
+}
+\newcommand\AtUpperRightCorner[3]{%
+\put(\LenToUnit{\dimexpr\paperwidth-#1},\LenToUnit{\dimexpr\paperheight-#2}){\blap{\llap{#3}}}%
+}
+
 \setlength{\headheight}{15.35403pt}
 \begin{document}
-\let\cleardoublepage\clearpage
-\title{ \usefont{T1}{ptm}{m}{n} Tutoriel TensorFlow}
+\frontmatter
 
-\annee{2017-2018}
+%==============================
+%	PAGE DE GARDE
+%==============================
 
-\Auteur{IKNI Layachi}{}
+%%%% Ancienne Version (use Package PageDeGarde)
+%\let\cleardoublepage\clearpage
+%\title{ \usefont{T1}{ptm}{m}{n} Tutoriel TensorFlow}
 
-\Encadrant{Pag\'e Vincent}{MCF à l'Université des Antilles}
+%\annee{2017-2018}
+
+%\Auteur{IKNI Layachi}{}
+
+%\Encadrant{Pag\'e Vincent}{MCF à l'Université des Antilles}
+
+%	Nouvelle version
+\begin{titlepage}
+	\AddToShipoutPicture{
+		\AtUpperLeftCorner{1.5cm}{1cm}{\includegraphics[height=3cm]{figures/logo_ua_0.jpg}}
+		\AtUpperRightCorner{1.5cm}{1cm}{\includegraphics[height=3cm]{figures/banniere_lamia.png}}
+	}
+  \begin{sffamily}
+  \begin{center}
+	~\\[4cm]
+
+    % Title
+    \HRule \\[0.4cm]
+    { \huge \bfseries Tutoriel TensorFlow\\[0.4cm] }
 
 
-\maketitle
+    \includegraphics[width=10cm]{figures/logoTensorFlow.png}
+    \HRule \\[6cm]
 
-\newpage
+
+    % Author and supervisor
+	
+    \begin{minipage}{0.8\textwidth}
+      \begin{flushleft} \large
+        IKNI \textsc{Layachi}\\
+        PAG\'E \textsc{Vincent}\\
+      \end{flushleft}
+    \end{minipage}
+    \vfill    
+    % Bottom of the page
+    {\large 1\ier{} janvier 2018}
+  \end{center}
+  \end{sffamily}
+\end{titlepage}
+\ClearShipoutPicture
+
+%\maketitle
+
+%\newpage
 %\section*{Remerciements}
 %\bigskip
 %\pagestyle{plain}
 %\bigskip
 %\newpage 
 
-\tableofcontents
 \newpage
+\tableofcontents
+
+\mainmatter
 \chapter{Introduction }
+
 
 \section{Installation}
 TensorFlow est une librairie de calcul dédiée à l'apprentissage automatique. On peut l'utiliser avec python, java, C,.... Dans notre cas, nous utiliserons python.
@@ -190,12 +217,19 @@ https://www.tensorflow.org/install/
 
 \subsection{Premiers concepts de TensorFlow}
 
-Tout d'abord, TensorFlow s'appuie sur des concepts de programmation très différents d'une programmation standard python. Pour bien les comprendre, prenons un exemple :
+Tout d'abord, on peut utiliser TensorFlow de deux façons :
+\begin{itemize}
+\item En utilisant des algorithmes précodés, utilisant la classe \textbf{Estimator}
+\item En maitrisant chaque étape du calcul.
+\end{itemize}
 
+Dans le second cas, il est nécessaire de comprendre que TensorFlow
+s'appuie sur des concepts de programmation très différents d'une programmation standard python.
 
-On veut que notre programme prenne une valeur réelle (x), calcule une valeur  $y = W*x+b$ avec $W$ et $b$ des valeurs réelles que notre programme sera appelé a modifier plus tard.
+Pour bien comprendre ces concepts, prenons un exemple :
+On veut que notre programme prenne une valeur réelle (x), calcule une valeur  $y = W*x+b$ avec $W$ et $b$ des valeurs réelles que notre programme sera appelé à modifier plus tard.
 
-le code correspondant en python est le suivant
+Le code correspondant en python est le suivant
 \begin{mypython}
 x = 2
 W = 0.3
@@ -214,7 +248,7 @@ Néanmoins, dans le contexte de notre programme, elles jouent des rôles très d
 \begin{itemize}
 \item $x$ est une entrée 
 \item $W$ et $b$ sont des valeurs modifiables
-\item $y$ est calculé a partir de $x$, $W$ et $b$
+\item $y$ est calculé à partir de $x$, $W$ et $b$
 \end{itemize}
 
 La programmation en TensorFlow, met en place cette différence.
