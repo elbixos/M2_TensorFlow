@@ -16,6 +16,8 @@ def ma_fn(features, labels, mode):
   optimizer = tf.train.GradientDescentOptimizer(0.01)
   train = tf.group(optimizer.minimize(loss),
                    tf.assign_add(global_step, 1))
+                   
+
   # EstimatorSpec connects subgraphs we built to the
   # appropriate functionality.
   return tf.estimator.EstimatorSpec(
@@ -24,7 +26,7 @@ def ma_fn(features, labels, mode):
       loss=loss,
       train_op=train)
 
-estimator = tf.estimator.Estimator(model_fn=ma_fn)
+estimator = tf.estimator.Estimator(model_fn=ma_fn, model_dir="./modelEstimator")
 # define our data sets
 x_train = np.array([1., 2., 3., 4.])
 y_train = np.array([0., -1., -2., -3.])
