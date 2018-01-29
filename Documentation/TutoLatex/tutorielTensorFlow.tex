@@ -617,16 +617,16 @@ Voici le résultat final visualisé dans TensorBoard
 \caption{Visualisation de l'évolution de l'erreur lors de l'apprentissage}
 \end{figure}
 
-\section{Régression Linéaire avec TfEstimator}
+\section{Régression Linéaire avec Estimator}
 
-tf.estimator est une bibliothèque TensorFlow de haut niveau qui simplifie la mécanique de l'apprentissage automatique, notamment:
+Estimator est une bibliothèque TensorFlow de haut niveau qui simplifie la mécanique de l'apprentissage automatique, notamment:
 \begin{itemize}
 \item exécuter des boucles d'entraînement
 \item exécuter des boucles d'évaluation
 \item gérer des ensembles de données
 \end{itemize}
 
-tf.estimator définit de nombreux modèles courants.
+Estimator définit de nombreux modèles courants.
 Utilisons le ici pour le problème précédent de régression linéaire
 \begin{mypython}
 # NumPy is often used to load, manipulate and preprocess data.
@@ -679,9 +679,9 @@ Le code est relativement simple. On peut noter que :
 \item On ne lance plus de run manuellement. Tout ceci est fait dans les fonctions train et evaluate.
 \end{itemize}
 
-\section{Régression Linéaire avec un modèle personnalisé pour TfEstimator}
-tf.estimator ne vous verrouille pas dans ses modèles prédéfinis. Supposons que nous voulions créer un modèle personnalisé qui n'est pas intégré dans TensorFlow, en conservant  l'abstraction de haut niveau de jeu de données, l' alimentation, la formation, etc. de tf.estimator. Içi, nous allons implémenter notre propre modèle équivalent au LinearRegressor.
-Pour définir un modèle personnalisé qui fonctionne avec tf.estimator, nous devons utiliser tf.estimator.Estimator.  Nous fournissons simplement à Estimator une fonction \verb+model_fn+ qui indique à tf.estimator comment il peut évaluer les prédictions, les étapes d'entraînement et la perte. Le code est comme suit:
+\section{Régression Linéaire avec un modèle personnalisé pour Estimator}
+Estimator ne vous verrouille pas dans ses modèles prédéfinis. Supposons que nous voulions créer un modèle personnalisé qui n'est pas intégré dans TensorFlow, en conservant  l'abstraction de haut niveau de jeu de données, l' alimentation, la formation, etc. de Estimator. Içi, nous allons implémenter notre propre modèle équivalent au LinearRegressor.
+Pour définir un modèle personnalisé qui fonctionne avec Estimator, nous devons utiliser \verb+tf.estimator.Estimator+.  Nous fournissons simplement à Estimator une fonction \verb+model_fn+ qui indique à Estimator comment il peut évaluer les prédictions, les étapes d'entraînement et la perte. Le code est comme suit:
 \begin{mypython}
 import numpy as np
 import tensorflow as tf
@@ -713,18 +713,24 @@ x_train = np.array([1., 2., 3., 4.])
 y_train = np.array([0., -1., -2., -3.])
 x_eval = np.array([2., 5., 8., 1.])
 y_eval = np.array([-1.01, -4.1, -7., 0.])
+
+
+# Apprentissage
 input_fn = tf.estimator.inputs.numpy_input_fn(
     {"x": x_train}, y_train, batch_size=4, num_epochs=None, shuffle=True)
+estimator.train(input_fn=input_fn, steps=1000)
+
+
+# Evaluation en Apprentissage
 train_input_fn = tf.estimator.inputs.numpy_input_fn(
     {"x": x_train}, y_train, batch_size=4, num_epochs=1000, shuffle=False)
+train_metrics = estimator.evaluate(input_fn=train_input_fn)
+
+# Evaluation en Généralisation
 eval_input_fn = tf.estimator.inputs.numpy_input_fn(
     {"x": x_eval}, y_eval, batch_size=4, num_epochs=1000, shuffle=False)
-
-# train
-estimator.train(input_fn=input_fn, steps=1000)
-# Here we evaluate how well our model did.
-train_metrics = estimator.evaluate(input_fn=train_input_fn)
 eval_metrics = estimator.evaluate(input_fn=eval_input_fn)
+
 print("train metrics: %r"% train_metrics)
 print("eval metrics: %r"% eval_metrics)
 \end{mypython}
@@ -898,16 +904,167 @@ Ci dessous, les figures respectives de l'évolution des paramètres du réseau p
 
 \chapter{bases MNIST et Fashion MNIST}
 \section{MNIST}
-Lecture des données
+
+\subsection{Récupération et chargement de la base MNIST}
+\label{secGetMnist}
+Lecture des données : Nous importons un module permettant de récupérer la base MNIST, puis on demande à ce module de lire les données. Si elles ne sont pas présentes, il va les télécharger sur le site de MNIST 
+(\verb+http://yann.lecun.com/exdb/mnist/+)
+
+\begin{mypython}
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+\end{mypython}
 
 \subsection{Réseau Linéaire monocouche}
+\subsubsection{Modèle du Réseau Linéaire monocouche}
 \label{secMnistMono}
-Architecture
 
-Résultats.
+On utilisera ici un modèle purement linéaire contenant une couche de 10 neurones (c'est la couche de sortie).
+ 
+\begin{mypython}
+# entrées
+x = tf.placeholder(tf.float32, [None, 784])
+
+# sorties voulues
+y_ = tf.placeholder(tf.float32, [None, 10])
+
+# Le modèle
+W = tf.Variable(tf.zeros([784, 10]))
+b = tf.Variable(tf.zeros([10]))
+
+# sorties calcules 
+score = tf.matmul(x, W) + b
+\end{mypython}
+
+Pour l'apprentissage des poids $(W,b)$, on utilisera comme critère à minimiser l'entropie croisée.
+Pour cela, la sortie de chaque neurone est transformée en probabilité avec la méthode \verb+softmax+.
+Puis on calcule l'entropie croisée entre cette distribution de probabilité et la distribution de probabilité voulue.
+\begin{mypython}
+y = tf.nn.softmax(score)
+cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), 	reduction_indices=[1]))
+\end{mypython}
+
+Pour le calcul de la précision, voici le code
+\begin{mypython}
+correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+\end{mypython}
+
+La partie apprentissage et évaluation sur les deux bases est classique...
+\begin{mypython}
+# Apprentissage
+for i in range(1000):
+  batch_xs, batch_ys = mnist.train.next_batch(100)
+  sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+
+# Evaluation
+print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: mnist.train.images, 	y_: mnist.train.labels}))
+print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.test.images, 	y_: mnist.test.labels}))
+\end{mypython}
+
+\subsubsection{Code complet du réseau linéaire monocouche}
+Le code complet, incluant des instructions de mise en forme pour TensorBoard est le suivant :
+\begin{mypython}
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+
+# récupération des bases de données
+from tensorflow.examples.tutorials.mnist import input_data
+mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+
+import tensorflow as tf
+
+with tf.name_scope('X'):
+	# entrées
+	x = tf.placeholder(tf.float32, [None, 784], name = "X")
+
+with tf.name_scope('Y_True'):
+	# sorties voulues
+	y_ = tf.placeholder(tf.float32, [None, 10], name = "Y_True")
+
+# Le modèle
+with tf.name_scope("Weights"):
+	W = tf.Variable(tf.zeros([784, 10]),name ="W")
+
+with tf.name_scope("Biases"):
+	b = tf.Variable(tf.zeros([10]), name = "b")
+	
+with tf.name_scope("Score"):
+	score = tf.matmul(x, W) + b
+
+
+
+# calcul de l'entropie croisée
+# Cross entropy version 1 (un peu instable)
+with tf.name_scope('softmax'):
+	softmax = y = tf.nn.softmax(score)
+with tf.name_scope('cross_entropy'):
+	cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+
+# Cross entropy version 2
+#with tf.name_scope('cross_entropy'):
+#	cross_entropy = tf.reduce_mean(
+#      tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=score))
+
+# Calcul de la prédiction finale
+with tf.name_scope('Accuracy'):
+	correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+# Choix d'une méthode de minimisation
+with tf.name_scope('train'):
+	train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+
+sess = tf.Session()
+
+
+# Configuration de TensorBoard
+pathLog="./pathLog/";
+writer = tf.summary.FileWriter(pathLog, sess.graph)
+tf.summary.scalar('Entropie Croisee', cross_entropy)
+tf.summary.scalar('Precision', accuracy)
+
+#tf.summary.scalar('W', W)
+merged = tf.summary.merge_all()
+
+
+
+init = tf.global_variables_initializer();
+sess.run(init);
+
+for i in range(1000):
+  batch_xs, batch_ys = mnist.train.next_batch(100)
+  summary, _ = sess.run([merged,train_step], feed_dict={x: batch_xs, y_: batch_ys})
+  #print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: batch_xs, y_: batch_ys}))
+
+  writer.add_summary(summary, i)
+  
+
+
+print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: mnist.train.images, y_: mnist.train.labels}))
+print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+
+writer.close()
+\end{mypython}
+
+\subsubsection{Performances du réseau linéaire monocouche}
+\label{secPerfMnistMono}
+Pour information, voici des performances standard obtenues sur la base MNIST.
+\begin{myoutput}
+Résultats en Apprentissage 0.91827273
+Résultats en Généralisation 0.9178
+\end{myoutput}
+
+\subsection{DNN Multicouches}
+\subsubsection{Modèle du Réseau de neurones multicouches}
+\label{secMnistMulti}
+
+Ici, un réseau à deux couches, avec Estimator.
+
 
 \section{Fashion MNIST}
-Lecture des données :
+
 La base Fashion MNIST ressemble beaucoup à la base MNIST :
 \begin{itemize}
 \item Même nombre d'entrées
@@ -920,14 +1077,17 @@ De ce fait, nous pouvons utiliser les mêmes procédures pour charger les exempl
 from tensorflow.examples.tutorials.mnist import input_data
 \end{mypython}
 La seule modification effective consiste a spécifier le répertoire ou l'on trouve les fichiers de Fashion MNIST :
-
 \begin{mypython}
 # Import data
 fashionMnist = input_data.read_data_sets('./FM_DATA/', one_hot=True)
 \end{mypython}
 C'est cet objet \verb+fashionMnist+ qui fournira les données et les labels lors de l'entrainement et de l'évaluation.
 
+\textbf{ATTENTION :} Nous utilisons içi un module conçu pour MNIST pour lire les données de Fashion MNIST. Conformément à ce qui a été dit dans la section~\ref{secGetMnist}, si le répertoire \verb+./FM_DATA/+ est vide ou n'existe pas, ce module va télécharger la base MNIST dedans !
+Le téléchargement de Fashion MNIST doit donc être fait manuellement, depuis \verb+https://github.com/zalandoresearch/fashion-mnist/+.
+
 \subsection{Réseau Linéaire monocouche}
+\subsubsection{Principe et code complet du réseau linéaire monocouche}
 \label{secFashionMnistMono}
 Compte tenu de ce qui a été dit plus haut, le code est quasiment le même que dans le cas de MNIST vu dans la section \ref{secMnistMono}. 
 Voici donc le code complet du programme.
@@ -1004,6 +1164,9 @@ print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: fashionMnis
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: fashionMnist.test.images, y_: fashionMnist.test.labels}))
 \end{mypython}
 
+\subsubsection{Performances du réseau linéaire monocouche}
+\label{secPerfFMnistMono}
+
 Voici ses performances
 \begin{myoutput}
 Résultats en Apprentissage 0.84214544
@@ -1014,6 +1177,8 @@ avec une grande variabilité, car on peut aussi obtenir ceci :
 Résultats en Apprentissage 0.7074182
 Résultats en Généralisation 0.6953
 \end{myoutput}
+
+On peut noter la baisse de performances par rapport à ce qui était obtenu avec la base MNIST dans la section ~\ref{secPerfMnistMono}.
 
 Selon l'évolution des performances ci-dessous, le réseau monocouche a atteint ses limites.
 
