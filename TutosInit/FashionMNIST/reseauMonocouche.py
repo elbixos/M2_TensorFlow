@@ -2,12 +2,15 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-# récupération des bases de données
-from tensorflow.examples.tutorials.mnist import input_data
-
-fashionMnist = input_data.read_data_sets('./FM_DATA/', one_hot=True)
+from PIL import Image
+import numpy as np
 
 import tensorflow as tf
+
+# récupération des bases de données
+from tensorflow.examples.tutorials.mnist import input_data
+fashionMnist = input_data.read_data_sets('./FM_DATA/', one_hot=True)
+
 
 with tf.name_scope('X'):
   # entrées
@@ -26,6 +29,8 @@ with tf.name_scope("Biases"):
   
 with tf.name_scope("Score"):
   score = tf.matmul(x, W) + b
+
+classe = tf.argmax(score,1)    
 
 
 # calcul de l'entropie croisée
@@ -77,5 +82,18 @@ for i in range(1000):
 
 print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: fashionMnist.train.images, y_: fashionMnist.train.labels}))
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: fashionMnist.test.images, y_: fashionMnist.test.labels}))
+
+## Prediction sur une image
+image = Image.open('tshirt_black.bmp')
+
+a = np.array(image)
+flat_arr = a.ravel()
+flat_arr = flat_arr.reshape((1, 784))
+
+dicoClasses = ["t-shirts", "trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
+
+classIndex = sess.run(classe, {x: flat_arr})
+print("Classe prédite : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
+
 
 writer.close()
