@@ -51,16 +51,16 @@ with tf.name_scope('X'):
 with tf.name_scope('Y_True'):
     # sorties voulues
     y_int = tf.placeholder(tf.uint8, [None], name = "Y_int")
-    y_ = tf.one_hot(y_int, depth=10, name = "Y_True")
+    y_ = tf.one_hot(y_int, depth=3, name = "Y_True")
 
 
 
 # Le modèle
 with tf.name_scope("Weights"):
-	W = tf.Variable(tf.zeros([4, 10]),name ="W")
+	W = tf.Variable(tf.zeros([4, 3]),name ="W")
 
 with tf.name_scope("Biases"):
-	b = tf.Variable(tf.zeros([10]), name = "b")
+	b = tf.Variable(tf.zeros([3]), name = "b")
 	
 with tf.name_scope("Score"):
 	score = tf.matmul(x, W) + b
@@ -83,6 +83,8 @@ with tf.name_scope('cross_entropy'):
 with tf.name_scope('Accuracy'):
 	correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
 	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+
+classe = tf.argmax(y,1)    
 
 # Choix d'une méthode de minimisation
 with tf.name_scope('train'):
@@ -116,5 +118,12 @@ for i in range(1000):
 
 print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: training_set.data, y_int: training_set.target}))
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: test_set.data, y_int: test_set.target}))
+
+# Classify two new flower samples.
+new_samples = np.array(
+  [[6.9, 3.2, 4.5, 1.5],
+   [4.8, 3.1, 5.0, 1.7]], dtype=np.float32)
+  
+print("classe ", sess.run(classe, {x: new_samples}))
 
 writer.close()
