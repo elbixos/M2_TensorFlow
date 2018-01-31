@@ -18,13 +18,13 @@ IRIS_TEST_URL = "http://download.tensorflow.org/data/iris_test.csv"
 # If the training and test sets aren't stored locally, download them.
 if not os.path.exists(IRIS_TRAINING):
     raw = urlopen(IRIS_TRAINING_URL).read()
-with open(IRIS_TRAINING, "wb") as f:
-  f.write(raw)
+    with open(IRIS_TRAINING, "wb") as f:
+        f.write(raw)
 
 if not os.path.exists(IRIS_TEST):
     raw = urlopen(IRIS_TEST_URL).read()
-with open(IRIS_TEST, "wb") as f:
-  f.write(raw)
+    with open(IRIS_TEST, "wb") as f:
+        f.write(raw)
 
 # Load datasets.
 training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
