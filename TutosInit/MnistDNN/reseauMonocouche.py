@@ -2,11 +2,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+from PIL import Image
+import numpy as np
+
+import tensorflow as tf
+
 # récupération des bases de données
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-
-import tensorflow as tf
 
 with tf.name_scope('X'):
 	# entrées
@@ -26,15 +29,14 @@ with tf.name_scope("Biases"):
 with tf.name_scope("Score"):
 	score = tf.matmul(x, W) + b
 
-
-
+classe = tf.argmax(score,1)    
 
 # calcul de l'entropie croisée
 # Cross entropy version 1 (un peu instable)
 with tf.name_scope('softmax'):
-	softmax = y = tf.nn.softmax(score)
+    y = tf.nn.softmax(score)
 with tf.name_scope('cross_entropy'):
-	cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+    cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
 # Cross entropy version 2
 #with tf.name_scope('cross_entropy'):
@@ -49,6 +51,7 @@ with tf.name_scope('Accuracy'):
 # Choix d'une méthode de minimisation
 with tf.name_scope('train'):
 	train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+    
 
 sess = tf.Session()
 
@@ -78,5 +81,17 @@ for i in range(1000):
 
 print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: mnist.train.images, y_: mnist.train.labels}))
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
+
+## Prediction sur une image
+image = Image.open('2_black.bmp')
+
+a = np.array(image)
+flat_arr = a.ravel()
+flat_arr = flat_arr.reshape((1, 784))
+
+print("Classe prédite", sess.run(classe, {x: flat_arr}))
+
+
+
 
 writer.close()
