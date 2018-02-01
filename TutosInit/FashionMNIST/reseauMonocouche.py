@@ -3,6 +3,7 @@ from __future__ import division
 from __future__ import print_function
 
 from PIL import Image
+import PIL.ImageOps
 import numpy as np
 
 import tensorflow as tf
@@ -84,11 +85,17 @@ print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: fashionMnis
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: fashionMnist.test.images, y_: fashionMnist.test.labels}))
 
 ## Prediction sur une image
-image = Image.open('tshirt_black.bmp')
+# Lecture de l'image, et préparation de l'image 
+imageFilename = 'tshirt.jpg'
+imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
+imageInvert =  PIL.ImageOps.invert(imageGray)
 
-a = np.array(image)
-flat_arr = a.ravel()
-flat_arr = flat_arr.reshape((1, 784))
+imageInvert.save('temp.bmp')
+
+
+# conversion en vecteur
+a = np.array(imageInvert)
+flat_arr = a.reshape((1, 784))
 
 dicoClasses = ["t-shirts", "trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
 

@@ -3,6 +3,9 @@ from __future__ import division
 from __future__ import print_function
 
 from PIL import Image
+import PIL.ImageOps
+
+
 import numpy as np
 
 import tensorflow as tf
@@ -83,11 +86,17 @@ print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: mnist.train
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
 
 ## Prediction sur une image
-image = Image.open('2_black.bmp')
+# Lecture de l'image, et préparation de l'image 
+imageFilename = '5.png'
+imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
+imageInvert =  PIL.ImageOps.invert(imageGray)
 
-a = np.array(image)
-flat_arr = a.ravel()
-flat_arr = flat_arr.reshape((1, 784))
+imageInvert.save('temp.bmp')
+
+
+# conversion en vecteur
+a = np.array(imageInvert)
+flat_arr = a.reshape((1, 784))
 
 print("Classe prédite", sess.run(classe, {x: flat_arr}))
 
