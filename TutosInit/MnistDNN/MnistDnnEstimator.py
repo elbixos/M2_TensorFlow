@@ -5,6 +5,9 @@ from __future__ import print_function
 import os
 from six.moves.urllib.request import urlopen
 
+from PIL import Image
+import PIL.ImageOps
+
 import numpy as np
 import tensorflow as tf
 
@@ -58,7 +61,7 @@ train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
 )
 
 accuracy_score = classifier.evaluate(input_fn=train_input_eval_fn)["accuracy"]
-print("\nLearning Accuracy: {0:f}\n".format(accuracy_score))
+print("Learning Accuracy: {0:f}\n".format(accuracy_score))
 
 # Define the test inputs
 test_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -71,5 +74,30 @@ test_input_fn = tf.estimator.inputs.numpy_input_fn(
 # Evaluate accuracy.
 accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
 
-print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+print("Test Accuracy: {0:f}\n".format(accuracy_score))
 
+
+## Prediction sur une image
+# Lecture de l'image, et préparation de l'image 
+imageFilename = '5.png'
+imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
+imageInvert =  PIL.ImageOps.invert(imageGray)
+
+imageInvert.save('temp.bmp')
+
+
+# conversion en vecteur
+a = np.array(imageInvert)
+flat_arr = a.reshape((1, 784))
+
+predict_input_fn = tf.estimator.inputs.numpy_input_fn(
+  x={"x": flat_arr},
+  num_epochs=1,
+  shuffle=False)
+
+predictions = classifier.predict(input_fn=predict_input_fn)
+
+for p in predictions :
+    class_id = p['class_ids'][0]
+    probability = p['probabilities'][class_id]
+    print ("je pense que c'est un : ",class_id, "avec une proba de ",probability )   

@@ -87,8 +87,10 @@ predict_input_fn = tf.estimator.inputs.numpy_input_fn(
   num_epochs=1,
   shuffle=False)
 
-predictions = list(classifier.predict(input_fn=predict_input_fn))
+dicoClasses = ['setosa', 'versicolor', 'virginica']
+predictions = classifier.predict(input_fn=predict_input_fn)
 
 for p in predictions :
-    chaine =p["classes"]
-print ("classe ", chaine[0].decode())   
+    class_id = p['class_ids'][0]
+    probability = p['probabilities'][class_id]
+    print ("je pense que c'est : ",dicoClasses[class_id], "avec une proba de ",probability )   
