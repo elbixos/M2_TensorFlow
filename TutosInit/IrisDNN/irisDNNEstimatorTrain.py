@@ -55,6 +55,24 @@ train_input_fn = tf.estimator.inputs.numpy_input_fn(
 # Train model.
 classifier.train(input_fn=train_input_fn, steps=2000)
 
+
+# Save Model
+feature_spec = {'x': tf.FixedLenFeature([4],tf.float32)}
+def serving_input_receiver_fn():
+  serialized_tf_example = tf.placeholder(dtype=tf.string,
+                                         shape=[None],
+                                         name='input_tensors')
+  receiver_tensors = {'inputs': serialized_tf_example}
+  features = tf.parse_example(serialized_tf_example, feature_spec)
+  return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
+
+savePath = './SavedNetworksEstimator/'
+    
+classifier.export_savedmodel(savePath, serving_input_receiver_fn)
+
+
+
+
 # Evaluation sur la base d'apprentissage
 train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
   x={"x": np.array(training_set.data)},
@@ -77,6 +95,8 @@ test_input_fn = tf.estimator.inputs.numpy_input_fn(
 accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
 
 print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+
+
 
 # Classify two new flower samples.
 new_samples = np.array(
