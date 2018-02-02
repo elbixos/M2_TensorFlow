@@ -32,11 +32,11 @@ with tf.Session() as sess:
 
   graph = tf.get_default_graph()
   x = graph.get_tensor_by_name("X/X:0")
-  classe = graph.get_tensor_by_name("classe:0")  
+  classe = graph.get_tensor_by_name("Classe/classe:0")  
   
   ## Prediction sur une image
   # Lecture de l'image, et préparation de l'image 
-  imageFilename = '4.jpg'
+  imageFilename = 'neufChelou.jpg'
   imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
   imageInvert =  PIL.ImageOps.invert(imageGray)
   

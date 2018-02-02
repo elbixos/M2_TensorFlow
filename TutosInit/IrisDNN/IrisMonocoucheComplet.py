@@ -36,6 +36,7 @@ training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
   filename=IRIS_TRAINING,
   target_dtype=np.int,
   features_dtype=np.float32)
+  
 test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
   filename=IRIS_TEST,
   target_dtype=np.int,
@@ -70,7 +71,7 @@ with tf.name_scope("Score"):
 # calcul de l'entropie croisée
 # Cross entropy version 1 (un peu instable)
 with tf.name_scope('softmax'):
-	softmax = y = tf.nn.softmax(score)
+	y = tf.nn.softmax(score)
 with tf.name_scope('cross_entropy'):
 	cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
 
@@ -113,8 +114,6 @@ for i in range(1000):
   #print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: batch_xs, y_: batch_ys}))
 
   writer.add_summary(summary, i)
-  
-
 
 print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: training_set.data, y_int: training_set.target}))
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: test_set.data, y_int: test_set.target}))

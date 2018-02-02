@@ -32,7 +32,7 @@ with tf.name_scope("Biases"):
 with tf.name_scope("Score"):
 	score = tf.matmul(x, W) + b
 
-classe = tf.argmax(score,1)    
+classe = tf.argmax(score,1, name="classe")    
 
 # calcul de l'entropie croisée
 # Cross entropy version 1 (un peu instable)
