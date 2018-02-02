@@ -28,8 +28,8 @@ with tf.name_scope("Biases"):
 with tf.name_scope("Score"):
 	score = tf.matmul(x, W) + b
 
-
-
+with tf.name_scope("Classe"):
+    classe = tf.argmax(score,1, name="classe")    
 
 # calcul de l'entropie croisée
 # Cross entropy version 1 (un peu instable)
@@ -79,7 +79,6 @@ for i in range(1000):
 #Create a saver object which will save all the variables
 saver = tf.train.Saver()
 
-
 # sauvegarde en fin d'apprentissage
 savePath = 'SavedNetworks/'
 modelName = 'myMonoCouchemodel.ckpt'
@@ -87,6 +86,7 @@ if not os.path.exists(savePath):
     os.makedirs(savePath)
     
 savePathFull = os.path.join(savePath, modelName)
+
 saver.save(sess, savePathFull)  
 
 

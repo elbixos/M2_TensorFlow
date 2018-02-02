@@ -5,13 +5,16 @@ from __future__ import print_function
 import os
 from six.moves.urllib.request import urlopen
 
+from PIL import Image
+import PIL.ImageOps
+
 import numpy as np
 import tensorflow as tf
 
 # récupération des bases de données
 from tensorflow.examples.tutorials.mnist import input_data
 
-mnist = input_data.read_data_sets('./MNIST_data/')
+mnist = input_data.read_data_sets('./FM_data/')
 
 
 # Specify that all features have real-value data
@@ -24,7 +27,7 @@ classifier = tf.estimator.DNNClassifier(
  optimizer=tf.train.AdamOptimizer(1e-4),
  n_classes=10,
  dropout=0.1,
- model_dir='./MnistDnnModel'
+ model_dir='./FMnistDnnModel'
 )
 
 def input(dataset):
@@ -72,4 +75,36 @@ test_input_fn = tf.estimator.inputs.numpy_input_fn(
 accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
 
 print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+
+## Prediction sur une image
+
+# Lecture de l'image, et préparation de l'image 
+imageFilename = 'nastase.jpg'
+imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
+imageInvert =  PIL.ImageOps.invert(imageGray)
+
+imageInvert.save('temp.bmp')
+
+
+# conversion en vecteur
+a = np.array(imageInvert)
+flat_arr = a.reshape((1, 784))
+
+predict_input_fn = tf.estimator.inputs.numpy_input_fn(
+  x={"x": flat_arr},
+  num_epochs=1,
+  shuffle=False)
+
+predictions = classifier.predict(input_fn=predict_input_fn)
+
+dicoClassesEn = ["un t-shirt", "un pantalon trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
+dicoClasses = ["un t-shirt", "un pantalon", "un pull", "une robe", "un manteau", "une sandale", "une chemise", "une basket", "un sac", "une botte"]
+
+
+for p in predictions :
+    class_id = p['class_ids'][0]
+    probability = p['probabilities'][class_id]
+    print ("je pense que c'est : ",dicoClasses[class_id], "avec une proba de ",probability )   
+
+
 
