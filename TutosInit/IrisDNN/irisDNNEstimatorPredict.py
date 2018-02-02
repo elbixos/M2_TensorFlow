@@ -31,24 +31,29 @@ with tf.Session() as sess:
   #get the output dict
   # do not forget [] around model_input or else it will complain shape() for Tensor shape(?,)
   # since its of shape(?,) when we trained it
-  
+
   new_samples = np.array(
-    [6.9, 3.2, 4.5, 1.5], dtype=np.float32)
+  [[6.9, 3.2, 4.5, 1.5],
+   [4.8, 3.1, 5.0, 1.7]], dtype=np.float32)
+   
+  for sample in new_samples:
+	  print (sample)
     
-  model_input= tf.train.Example(features=tf.train.Features(feature={
-                'x': tf.train.Feature(float_list=tf.train.FloatList(value=new_samples))        
-                }))
+	  model_input= tf.train.Example(features=tf.train.Features(feature={
+					'x': tf.train.Feature(float_list=tf.train.FloatList(value=sample))        
+					}))
 
-  #Prepare model input, the model expects a float array to be passed to x
-  # check line 28 serving_input_receiver_fn
-  model_input=model_input.SerializeToString()
-  
-  # calcul de la prediction ... depuis les scores 
-  predictions= predictor({"inputs":[model_input]})
-  classe_id = np.argmax(predictions["scores"])
-  
-  dicoClasses = ['setosa', 'versicolor', 'virginica']
+	  #Prepare model input, the model expects a float array to be passed to x
+	  # check line 28 serving_input_receiver_fn
+	  model_input=model_input.SerializeToString()
+	  
+	  # calcul de la prediction ... depuis les scores 
+	  predictions= predictor({"inputs":[model_input]})
+	  classe_id = np.argmax(predictions["scores"])
+	  
+	  dicoClasses = ['setosa', 'versicolor', 'virginica']
 
-  print ("je pense que c'est : ",dicoClasses[classe_id])
+	  print ("je pense que c'est : ",dicoClasses[classe_id])
+
 
   
