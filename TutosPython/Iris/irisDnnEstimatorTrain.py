@@ -82,6 +82,9 @@ def serving_input_receiver_fn():
   return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
 
 savePath = './SavedNetworksEstimator/'
+if os.path.exists(savePath):
+  shutil.rmtree(savePath)
+os.makedirs(savePath)
     
 classifier.export_savedmodel(savePath, serving_input_receiver_fn)
 
