@@ -14,7 +14,7 @@ import tensorflow as tf
 # récupération des bases de données
 from tensorflow.examples.tutorials.mnist import input_data
 
-mnist = input_data.read_data_sets('./MNIST_data/')
+mnist = input_data.read_data_sets('./FM_DATA/')
 
 
 # Specify that all features have real-value data
@@ -27,7 +27,7 @@ classifier = tf.estimator.DNNClassifier(
  optimizer=tf.train.AdamOptimizer(1e-4),
  n_classes=10,
  dropout=0.1,
- model_dir='./MnistDnnModel'
+ model_dir='./VisuDnn'
 )
 
 def input(dataset):
@@ -61,7 +61,7 @@ train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
 )
 
 accuracy_score = classifier.evaluate(input_fn=train_input_eval_fn)["accuracy"]
-print("Learning Accuracy: {0:f}\n".format(accuracy_score))
+print("\nLearning Accuracy: {0:f}\n".format(accuracy_score))
 
 # Define the test inputs
 test_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -74,16 +74,16 @@ test_input_fn = tf.estimator.inputs.numpy_input_fn(
 # Evaluate accuracy.
 accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
 
-print("Test Accuracy: {0:f}\n".format(accuracy_score))
-
+print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
 
 ## Prediction sur une image
+
 # Lecture de l'image, et préparation de l'image 
-imageFilename = 'flou.jpg'
+imageFilename = 'images/nastase.jpg'
 imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
 imageInvert =  PIL.ImageOps.invert(imageGray)
 
-imageInvert.save('temp.bmp')
+#imageInvert.save('temp.bmp')
 
 
 # conversion en vecteur
@@ -97,7 +97,14 @@ predict_input_fn = tf.estimator.inputs.numpy_input_fn(
 
 predictions = classifier.predict(input_fn=predict_input_fn)
 
+dicoClassesEn = ["un t-shirt", "un pantalon trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
+dicoClasses = ["un t-shirt", "un pantalon", "un pull", "une robe", "un manteau", "une sandale", "une chemise", "une basket", "un sac", "une botte"]
+
+
 for p in predictions :
     class_id = p['class_ids'][0]
     probability = p['probabilities'][class_id]
-    print ("je pense que c'est un : ",class_id, "avec une proba de ",probability )   
+    print ("je pense que c'est : ",dicoClasses[class_id], "avec une proba de ",probability )   
+
+
+

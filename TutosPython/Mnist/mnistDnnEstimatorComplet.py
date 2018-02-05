@@ -14,11 +14,16 @@ import tensorflow as tf
 # récupération des bases de données
 from tensorflow.examples.tutorials.mnist import input_data
 
-mnist = input_data.read_data_sets('./FM_data/')
+mnist = input_data.read_data_sets('./MNIST_data/')
 
 
 # Specify that all features have real-value data
 feature_columns = [tf.feature_column.numeric_column("x", shape=[784])]
+
+# sauvegarde en fin d'apprentissage
+visuPath = './VisuDnn'
+if not os.path.exists(visuPath):
+    os.makedirs(visuPath)
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
 classifier = tf.estimator.DNNClassifier(
@@ -27,7 +32,7 @@ classifier = tf.estimator.DNNClassifier(
  optimizer=tf.train.AdamOptimizer(1e-4),
  n_classes=10,
  dropout=0.1,
- model_dir='./FMnistDnnModel'
+ model_dir=visuPath
 )
 
 def input(dataset):
@@ -52,6 +57,24 @@ train_input_fn = tf.estimator.inputs.numpy_input_fn(
 # Train model.
 classifier.train(input_fn=train_input_fn, steps=10000)
 
+
+# Save Model
+
+def serving_input_receiver_fn():
+  feature_spec = {'x': tf.FixedLenFeature([784],tf.float32)}
+  serialized_tf_example = tf.placeholder(dtype=tf.string,
+                                         shape=[None],
+                                         name='input_tensors')
+  receiver_tensors = {'inputs': serialized_tf_example}
+  features = tf.parse_example(serialized_tf_example, feature_spec)
+  return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
+
+savePath = './SavedNetworksEstimator/'
+    
+classifier.export_savedmodel(savePath, serving_input_receiver_fn)
+
+
+
 # Evaluation sur la base d'apprentissage
 train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
  x={"x": getFeatures(mnist.train)},
@@ -61,7 +84,7 @@ train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
 )
 
 accuracy_score = classifier.evaluate(input_fn=train_input_eval_fn)["accuracy"]
-print("\nLearning Accuracy: {0:f}\n".format(accuracy_score))
+print("Learning Accuracy: {0:f}\n".format(accuracy_score))
 
 # Define the test inputs
 test_input_fn = tf.estimator.inputs.numpy_input_fn(
@@ -74,16 +97,16 @@ test_input_fn = tf.estimator.inputs.numpy_input_fn(
 # Evaluate accuracy.
 accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
 
-print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
+print("Test Accuracy: {0:f}\n".format(accuracy_score))
+
 
 ## Prediction sur une image
-
 # Lecture de l'image, et préparation de l'image 
-imageFilename = 'nastase.jpg'
+imageFilename = 'images/flou.jpg'
 imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
 imageInvert =  PIL.ImageOps.invert(imageGray)
 
-imageInvert.save('temp.bmp')
+#imageInvert.save('temp.bmp')
 
 
 # conversion en vecteur
@@ -97,14 +120,7 @@ predict_input_fn = tf.estimator.inputs.numpy_input_fn(
 
 predictions = classifier.predict(input_fn=predict_input_fn)
 
-dicoClassesEn = ["un t-shirt", "un pantalon trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
-dicoClasses = ["un t-shirt", "un pantalon", "un pull", "une robe", "un manteau", "une sandale", "une chemise", "une basket", "un sac", "une botte"]
-
-
 for p in predictions :
     class_id = p['class_ids'][0]
     probability = p['probabilities'][class_id]
-    print ("je pense que c'est : ",dicoClasses[class_id], "avec une proba de ",probability )   
-
-
-
+    print ("je pense que c'est un : ",class_id, "avec une proba de ",probability )   

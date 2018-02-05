@@ -2,11 +2,14 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
+
+
 import os
-
-import numpy as np
-
 import tensorflow as tf
+
+# récupération des bases de données
+from tensorflow.examples.tutorials.mnist import input_data
+fashionMnist = input_data.read_data_sets('./FM_DATA/', one_hot=True)
 
 
 # Chargement du réseau
@@ -30,19 +33,8 @@ with tf.Session() as sess:
 
   graph = tf.get_default_graph()
   x = graph.get_tensor_by_name("X/X:0")
+  y_ = graph.get_tensor_by_name("Y_True/Y_True:0")
   
-  classe = graph.get_tensor_by_name("Classe/classe:0")
-  
-  new_samples = np.array(
-    [[6.9, 3.2, 4.5, 1.5],
-    [4.8, 3.1, 5.0, 1.7],
-    [1.9, 6.2, 2.5, 1.5]], dtype=np.float32)
-
-  predictions = sess.run(classe, {x: new_samples})
-  
-  dicoClasses = ['setosa', 'versicolor', 'virginica']
-
-  for p in predictions :
-    print ("je pense que c'est : ",dicoClasses[p])   
-
-  
+  accuracy = graph.get_tensor_by_name("Accuracy/accuracy:0")
+  print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: fashionMnist.train.images, y_: fashionMnist.train.labels}))
+  print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: fashionMnist.test.images, y_: fashionMnist.test.labels}))

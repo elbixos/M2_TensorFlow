@@ -36,11 +36,11 @@ with tf.Session() as sess:
   
   ## Prediction sur une image
   # Lecture de l'image, et préparation de l'image 
-  imageFilename = 'neufChelou.jpg'
+  imageFilename = 'images/neufChelou.jpg'
   imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
   imageInvert =  PIL.ImageOps.invert(imageGray)
   
-  imageInvert.save('temp.bmp')
+  #imageInvert.save('temp.bmp')
   
   # conversion en vecteur
   a = np.array(imageInvert)

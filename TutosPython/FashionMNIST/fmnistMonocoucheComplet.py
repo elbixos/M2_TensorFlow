@@ -59,7 +59,7 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./pathLog/";
+pathLog="./VisuMonoCouche/";
 writer = tf.summary.FileWriter(pathLog, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
@@ -86,11 +86,11 @@ print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: fashion
 
 ## Prediction sur une image
 # Lecture de l'image, et préparation de l'image 
-imageFilename = 'tshirt.jpg'
+imageFilename = 'images/tshirt.jpg'
 imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
 imageInvert =  PIL.ImageOps.invert(imageGray)
 
-imageInvert.save('temp.bmp')
+#imageInvert.save('temp.bmp')
 
 
 # conversion en vecteur
@@ -100,7 +100,7 @@ flat_arr = a.reshape((1, 784))
 dicoClasses = ["t-shirts", "trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
 
 classIndex = sess.run(classe, {x: flat_arr})
-print("Classe prédite : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
+print("\nJe pense que c'est : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
 
 
 writer.close()
