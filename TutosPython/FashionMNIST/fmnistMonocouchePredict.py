@@ -16,7 +16,7 @@ import tensorflow as tf
 savePath = 'SavedNetworks'
 modelName = 'myMonoCouchemodel.ckpt'
 savePathFull = os.path.join(savePath, modelName)
-print ("ModelFilename ", repr(savePathFull))
+#print ("ModelFilename ", repr(savePathFull))
 
 metagraphFilename = savePathFull+'.meta'
 

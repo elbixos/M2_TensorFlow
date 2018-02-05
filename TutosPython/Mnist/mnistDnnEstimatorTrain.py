@@ -4,11 +4,13 @@ from __future__ import print_function
 
 import os
 from six.moves.urllib.request import urlopen
+import shutil
 
 from PIL import Image
 import PIL.ImageOps
 
 import numpy as np
+
 import tensorflow as tf
 
 # récupération des bases de données
@@ -21,9 +23,12 @@ mnist = input_data.read_data_sets('./MNIST_data/')
 feature_columns = [tf.feature_column.numeric_column("x", shape=[784])]
 
 # sauvegarde en fin d'apprentissage
+# If the model_dir exists, we delete it.
+# to avoid accidental multiple trainings.
 visuPath = './VisuDnn'
-if not os.path.exists(visuPath):
-    os.makedirs(visuPath)
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
 classifier = tf.estimator.DNNClassifier(
@@ -73,6 +78,12 @@ savePath = './SavedNetworksEstimator/'
     
 classifier.export_savedmodel(savePath, serving_input_receiver_fn)
 
+## Supression du repertoire Timestamp, remplace par lastSave
+folderName = os.listdir(savePath)[0]
+folderFullName = os.path.join(savePath, folderName)
+targetFullName = os.path.join(savePath, 'lastSave')
+
+shutil.move(folderFullName,targetFullName)
 
 
 # Evaluation sur la base d'apprentissage

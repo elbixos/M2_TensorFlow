@@ -9,6 +9,8 @@ from PIL import Image
 import PIL.ImageOps
 
 import numpy as np
+import shutil
+
 import tensorflow as tf
 
 # récupération des bases de données
@@ -21,13 +23,20 @@ mnist = input_data.read_data_sets('./FM_DATA/')
 feature_columns = [tf.feature_column.numeric_column("x", shape=[784])]
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
+# If the model_dir exists, we delete it.
+# to avoid accidental multiple trainings.
+visuPath = './VisuDnn'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
 classifier = tf.estimator.DNNClassifier(
  feature_columns=feature_columns,
  hidden_units=[256, 32],
  optimizer=tf.train.AdamOptimizer(1e-4),
  n_classes=10,
  dropout=0.1,
- model_dir='./VisuDnn'
+ model_dir=visuPath
 )
 
 def input(dataset):

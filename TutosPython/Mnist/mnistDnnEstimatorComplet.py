@@ -4,6 +4,7 @@ from __future__ import print_function
 
 import os
 from six.moves.urllib.request import urlopen
+import shutil
 
 from PIL import Image
 import PIL.ImageOps
@@ -21,9 +22,12 @@ mnist = input_data.read_data_sets('./MNIST_data/')
 feature_columns = [tf.feature_column.numeric_column("x", shape=[784])]
 
 # sauvegarde en fin d'apprentissage
+# If the model_dir exists, we delete it.
+# to avoid accidental multiple trainings.
 visuPath = './VisuDnn'
-if not os.path.exists(visuPath):
-    os.makedirs(visuPath)
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
 classifier = tf.estimator.DNNClassifier(
