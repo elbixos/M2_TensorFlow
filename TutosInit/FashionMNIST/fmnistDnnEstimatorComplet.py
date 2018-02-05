@@ -14,7 +14,7 @@ import tensorflow as tf
 # récupération des bases de données
 from tensorflow.examples.tutorials.mnist import input_data
 
-mnist = input_data.read_data_sets('./FM_data/')
+mnist = input_data.read_data_sets('./FM_DATA/')
 
 
 # Specify that all features have real-value data
@@ -27,7 +27,7 @@ classifier = tf.estimator.DNNClassifier(
  optimizer=tf.train.AdamOptimizer(1e-4),
  n_classes=10,
  dropout=0.1,
- model_dir='./FMnistDnnModel'
+ model_dir='./VisuDnn'
 )
 
 def input(dataset):
@@ -79,11 +79,11 @@ print("\nTest Accuracy: {0:f}\n".format(accuracy_score))
 ## Prediction sur une image
 
 # Lecture de l'image, et préparation de l'image 
-imageFilename = 'nastase.jpg'
+imageFilename = 'images/nastase.jpg'
 imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
 imageInvert =  PIL.ImageOps.invert(imageGray)
 
-imageInvert.save('temp.bmp')
+#imageInvert.save('temp.bmp')
 
 
 # conversion en vecteur

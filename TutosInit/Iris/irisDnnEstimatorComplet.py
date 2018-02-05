@@ -9,10 +9,10 @@ import numpy as np
 import tensorflow as tf
 
 # Data sets
-IRIS_TRAINING = "iris_training.csv"
+IRIS_TRAINING = "IrisDatabase/iris_training.csv"
 IRIS_TRAINING_URL = "http://download.tensorflow.org/data/iris_training.csv"
 
-IRIS_TEST = "iris_test.csv"
+IRIS_TEST = "IrisDatabase/iris_test.csv"
 IRIS_TEST_URL = "http://download.tensorflow.org/data/iris_test.csv"
 
 # If the training and test sets aren't stored locally, download them.
@@ -43,7 +43,7 @@ feature_columns = [tf.feature_column.numeric_column("x", shape=[4])]
 classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
                                       hidden_units=[10, 20, 10],
                                       n_classes=3,
-                                      model_dir="./Iris_model")
+                                      model_dir="./VisuDnn")
 # Define the training inputs
 train_input_fn = tf.estimator.inputs.numpy_input_fn(
   x={"x": np.array(training_set.data)},
@@ -57,21 +57,6 @@ classifier.train(input_fn=train_input_fn, steps=2000)
 
 
 # Save Model
-
-def serving_input_receiver_fn():
-  feature_spec = {'x': tf.FixedLenFeature([4],tf.float32)}
-  serialized_tf_example = tf.placeholder(dtype=tf.string,
-                                         shape=[None],
-                                         name='input_tensors')
-  receiver_tensors = {'inputs': serialized_tf_example}
-  features = tf.parse_example(serialized_tf_example, feature_spec)
-  return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
-
-savePath = './SavedNetworksEstimator/'
-    
-classifier.export_savedmodel(savePath, serving_input_receiver_fn)
-
-
 
 
 # Evaluation sur la base d'apprentissage
