@@ -9,6 +9,7 @@ from PIL import Image
 import PIL.ImageOps
 
 import numpy as np
+
 import tensorflow as tf
 
 from tensorflow.contrib import predictor
@@ -17,7 +18,7 @@ with tf.Session() as sess:
 
   # Chargement du réseau
   basePath = 'SavedNetworksEstimator'
-  tmpDir = '1517839700'
+  tmpDir = 'lastSave'
   savePathFull = os.path.join(basePath, tmpDir)
   print ("Restoring from ", savePathFull)
 

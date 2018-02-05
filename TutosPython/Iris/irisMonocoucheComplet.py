@@ -6,6 +6,7 @@ import os
 from six.moves.urllib.request import urlopen
 
 import numpy as np
+import shutil
 
 
 import tensorflow as tf
@@ -95,8 +96,15 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./VisuMonoCouche/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
+# If the visu dir exists, we delete it.
+# to avoid accidental multiple trainings visualisation
+visuPath = './VisuMonoCouche'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
+
+writer = tf.summary.FileWriter(visuPath, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
 

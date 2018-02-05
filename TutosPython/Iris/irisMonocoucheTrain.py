@@ -6,7 +6,7 @@ import os
 from six.moves.urllib.request import urlopen
 
 import numpy as np
-
+import shutil
 
 import tensorflow as tf
 
@@ -28,8 +28,6 @@ if not os.path.exists(IRIS_TEST):
     with open(IRIS_TEST, "wb") as f:
         f.write(raw)
 
-#mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
-
 
 # Load datasets.
 training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
@@ -42,8 +40,6 @@ test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
   target_dtype=np.int,
   features_dtype=np.float32)
 
-  
-  
 
 with tf.name_scope('X'):
 	# entrées
@@ -95,9 +91,17 @@ with tf.name_scope('train'):
 sess = tf.Session()
 
 
+
 # Configuration de TensorBoard
-pathLog="./VisuMonoCouche/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
+# If the visu dir exists, we delete it.
+# to avoid accidental multiple trainings visualisation
+visuPath = './VisuMonoCouche'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
+
+writer = tf.summary.FileWriter(visuPath, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
 
@@ -133,13 +137,3 @@ saver.save(sess, savePathFull)
 
 print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: training_set.data, y_int: training_set.target}))
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: test_set.data, y_int: test_set.target}))
-
-# Classify two new flower samples.
-new_samples = np.array(
-  [[6.9, 3.2, 4.5, 1.5],
-   [4.8, 3.1, 5.0, 1.7]], dtype=np.float32)
-
-print("classe ", sess.run(classe, {x: new_samples}))
-
-
-

@@ -5,6 +5,7 @@ from __future__ import print_function
 
 
 import os
+import shutil
 
 
 # récupération des bases de données
@@ -62,8 +63,14 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./VisuMonoCouche/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
+# If the model_dir exists, we delete it.
+# to avoid accidental multiple trainings.
+visuPath = './VisuMonoCouche'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
+writer = tf.summary.FileWriter(visuPath, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
 
@@ -89,8 +96,7 @@ saver = tf.train.Saver()
 savePath = 'SavedNetworks/'
 modelName = 'myMonoCouchemodel.ckpt'
 if not os.path.exists(savePath):
- 
- os.makedirs(savePath)
+  os.makedirs(savePath)
     
 savePathFull = os.path.join(savePath, modelName)
 

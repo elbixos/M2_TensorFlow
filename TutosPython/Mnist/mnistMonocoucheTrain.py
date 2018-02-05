@@ -4,6 +4,8 @@ from __future__ import print_function
 
 import os
 
+import shutil
+
 # récupération des bases de données
 from tensorflow.examples.tutorials.mnist import input_data
 mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
@@ -56,8 +58,14 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./VisuMonoCouche/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
+# If the visu dir exists, we delete it.
+# to avoid accidental multiple trainings visualisation
+visuPath = './VisuMonoCouche'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
+writer = tf.summary.FileWriter(visuPath, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
 

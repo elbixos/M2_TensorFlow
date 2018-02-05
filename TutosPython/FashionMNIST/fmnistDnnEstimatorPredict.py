@@ -17,7 +17,7 @@ with tf.Session() as sess:
 
   # Chargement du réseau
   basePath = 'SavedNetworksEstimator'
-  tmpDir = '1517846831'
+  tmpDir = 'lastSave'
   savePathFull = os.path.join(basePath, tmpDir)
   print ("Restoring from ", savePathFull)
 

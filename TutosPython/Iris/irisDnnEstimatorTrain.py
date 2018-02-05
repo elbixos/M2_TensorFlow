@@ -6,7 +6,11 @@ import os
 from six.moves.urllib.request import urlopen
 
 import numpy as np
+import shutil
+
 import tensorflow as tf
+
+
 
 # Data sets
 IRIS_TRAINING = "IrisDatabase/iris_training.csv"
@@ -39,11 +43,21 @@ test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
 # Specify that all features have real-value data
 feature_columns = [tf.feature_column.numeric_column("x", shape=[4])]
 
+
 # Build 3 layer DNN with 10, 20, 10 units respectively.
+
+# If the model_dir exists, we delete it.
+# to avoid accidental multiple trainings.
+visuPath = './VisuDnn'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
 classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
                                       hidden_units=[10, 20, 10],
                                       n_classes=3,
-                                      model_dir="./VisuDnn")
+                                      model_dir=visuPath)
+
 # Define the training inputs
 train_input_fn = tf.estimator.inputs.numpy_input_fn(
   x={"x": np.array(training_set.data)},
@@ -70,6 +84,13 @@ def serving_input_receiver_fn():
 savePath = './SavedNetworksEstimator/'
     
 classifier.export_savedmodel(savePath, serving_input_receiver_fn)
+
+## Supression du repertoire Timestamp, remplace par lastSave
+folderName = os.listdir(savePath)[0]
+folderFullName = os.path.join(savePath, folderName)
+targetFullName = os.path.join(savePath, 'lastSave')
+
+shutil.move(folderFullName,targetFullName)
 
 
 
