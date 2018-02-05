@@ -2,17 +2,17 @@ from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
 
-from PIL import Image
-import PIL.ImageOps
-import numpy as np
 
-import tensorflow as tf
+
+import os
+
 
 # récupération des bases de données
 from tensorflow.examples.tutorials.mnist import input_data
 fashionMnist = input_data.read_data_sets('./FM_DATA/', one_hot=True)
 
 
+import tensorflow as tf
 with tf.name_scope('X'):
   # entrées
   x = tf.placeholder(tf.float32, [None, 784], name = "X")
@@ -28,10 +28,13 @@ with tf.name_scope("Weights"):
 with tf.name_scope("Biases"):
   b = tf.Variable(tf.zeros([10]), name = "b")
   
-with tf.name_scope("Score"):
-  score = tf.matmul(x, W) + b
+with tf.name_scope("score"):
+ score = tf.matmul(x, W) + b
+ 
+with tf.name_scope("Classe"):
+    classe = tf.argmax(score,1, name="classe")    
 
-classe = tf.argmax(score,1)    
+   
 
 
 # calcul de l'entropie croisée
@@ -49,7 +52,7 @@ with tf.name_scope('cross_entropy'):
 # Calcul de la prédiction finale
 with tf.name_scope('Accuracy'):
   correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
-  accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+  accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32), name="accuracy")
 
 # Choix d'une méthode de minimisation
 with tf.name_scope('train'):
@@ -79,28 +82,19 @@ for i in range(1000):
 
   writer.add_summary(summary, i)
   
+#Create a saver object which will save all the variables
+saver = tf.train.Saver()
 
+# sauvegarde en fin d'apprentissage
+savePath = 'SavedNetworks/'
+modelName = 'myMonoCouchemodel.ckpt'
+if not os.path.exists(savePath):
+ 
+ os.makedirs(savePath)
+    
+savePathFull = os.path.join(savePath, modelName)
+
+saver.save(sess, savePathFull)  
 
 print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: fashionMnist.train.images, y_: fashionMnist.train.labels}))
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: fashionMnist.test.images, y_: fashionMnist.test.labels}))
-
-## Prediction sur une image
-# Lecture de l'image, et préparation de l'image 
-imageFilename = 'images/tshirt.jpg'
-imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
-imageInvert =  PIL.ImageOps.invert(imageGray)
-
-#imageInvert.save('temp.bmp')
-
-
-# conversion en vecteur
-a = np.array(imageInvert)
-flat_arr = a.reshape((1, 784))
-
-dicoClasses = ["t-shirts", "trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
-
-classIndex = sess.run(classe, {x: flat_arr})
-print("Classe prédite : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
-
-
-writer.close()
