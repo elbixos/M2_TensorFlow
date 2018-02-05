@@ -1,4 +1,4 @@
-*events.out.tfevents*
-*model.ckpt*
-*checkpoint
-*graph.pbtxt
+SavedNetworks/
+SavedNetworksEstimator/
+VisuDnn/
+VisuMonoCouche/
