@@ -62,7 +62,7 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./pathLog/";
+pathLog="./VisuMonoCouche/";
 writer = tf.summary.FileWriter(pathLog, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)

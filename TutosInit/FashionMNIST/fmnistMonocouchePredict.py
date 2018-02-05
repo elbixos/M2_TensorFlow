@@ -37,11 +37,11 @@ with tf.Session() as sess:
   
   ## Prediction sur une image
   # Lecture de l'image, et préparation de l'image 
-  imageFilename = 'e2.jpg'
+  imageFilename = 'images/e2.jpg'
   imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
   imageInvert =  PIL.ImageOps.invert(imageGray)
   
-  imageInvert.save('temp.bmp')
+  #imageInvert.save('temp.bmp')
   
   # conversion en vecteur
   a = np.array(imageInvert)
@@ -49,6 +49,6 @@ with tf.Session() as sess:
 
   dicoClasses = ["t-shirts", "trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
   classIndex = sess.run(classe, {x: flat_arr})
-  print("Classe prédite : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
+  print("\n Je pense que c'est : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
 
   

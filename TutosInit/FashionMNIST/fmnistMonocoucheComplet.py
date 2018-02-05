@@ -100,7 +100,7 @@ flat_arr = a.reshape((1, 784))
 dicoClasses = ["t-shirts", "trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
 
 classIndex = sess.run(classe, {x: flat_arr})
-print("Classe prédite : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
+print("\nJe pense que c'est : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
 
 
 writer.close()
