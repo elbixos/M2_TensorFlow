@@ -60,8 +60,14 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./VisuMonoCouche/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
+# If the visu dir exists, we delete it.
+# to avoid accidental multiple trainings visualisation
+visuPath = './VisuMonoCouche'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
+writer = tf.summary.FileWriter(visuPath, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
 
@@ -99,8 +105,5 @@ a = np.array(imageInvert)
 flat_arr = a.reshape((1, 784))
 
 print("\nJe pense que c'est un ", sess.run(classe, {x: flat_arr}))
-
-
-
 
 writer.close()
