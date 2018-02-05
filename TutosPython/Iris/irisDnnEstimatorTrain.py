@@ -6,7 +6,11 @@ import os
 from six.moves.urllib.request import urlopen
 
 import numpy as np
+import shutil
+
 import tensorflow as tf
+
+
 
 # Data sets
 IRIS_TRAINING = "IrisDatabase/iris_training.csv"
@@ -70,6 +74,13 @@ def serving_input_receiver_fn():
 savePath = './SavedNetworksEstimator/'
     
 classifier.export_savedmodel(savePath, serving_input_receiver_fn)
+
+## Supression du repertoire Timestamp, remplace par lastSave
+folderName = os.listdir(savePath)[0]
+folderFullName = os.path.join(savePath, folderName)
+targetFullName = os.path.join(savePath, 'lastSave')
+
+shutil.move(folderFullName,targetFullName)
 
 
 
