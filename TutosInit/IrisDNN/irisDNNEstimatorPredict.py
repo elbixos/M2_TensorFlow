@@ -9,14 +9,13 @@ import numpy as np
 import tensorflow as tf
 
 
-# Chargement du réseau
-basePath = 'SavedNetworksEstimator'
-tmpDir = '1517591922'
-savePathFull = os.path.join(basePath, tmpDir)
-print ("Restoring from ", savePathFull)
-
 with tf.Session() as sess:
 
+  # Chargement du réseau
+  basePath = 'SavedNetworksEstimator'
+  tmpDir = '1517595177'
+  savePathFull = os.path.join(basePath, tmpDir)
+  print ("Restoring from ", savePathFull)
 
   # loading model
   tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], savePathFull)

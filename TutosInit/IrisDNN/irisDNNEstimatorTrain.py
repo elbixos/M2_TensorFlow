@@ -57,8 +57,9 @@ classifier.train(input_fn=train_input_fn, steps=2000)
 
 
 # Save Model
-feature_spec = {'x': tf.FixedLenFeature([4],tf.float32)}
+
 def serving_input_receiver_fn():
+  feature_spec = {'x': tf.FixedLenFeature([4],tf.float32)}
   serialized_tf_example = tf.placeholder(dtype=tf.string,
                                          shape=[None],
                                          name='input_tensors')
