@@ -95,8 +95,9 @@ saver = tf.train.Saver()
 # sauvegarde en fin d'apprentissage
 savePath = 'SavedNetworks/'
 modelName = 'myMonoCouchemodel.ckpt'
-if not os.path.exists(savePath):
-  os.makedirs(savePath)
+if os.path.exists(savePath):
+  shutil.rmtree(savePath)
+os.makedirs(savePath)
     
 savePathFull = os.path.join(savePath, modelName)
 

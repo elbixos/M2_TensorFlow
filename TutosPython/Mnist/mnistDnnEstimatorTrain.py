@@ -74,8 +74,11 @@ def serving_input_receiver_fn():
   features = tf.parse_example(serialized_tf_example, feature_spec)
   return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
 
-savePath = './SavedNetworksEstimator/'
-    
+savePath = './SavedNetworksEstimator'
+if os.path.exists(savePath):
+  shutil.rmtree(savePath)
+os.makedirs(savePath)
+  
 classifier.export_savedmodel(savePath, serving_input_receiver_fn)
 
 ## Supression du repertoire Timestamp, remplace par lastSave
