@@ -34,9 +34,9 @@ with tf.Session() as sess:
   classe = graph.get_tensor_by_name("Classe/classe:0")
   
   new_samples = np.array(
-    [[6.9, 3.2, 4.5, 1.5],
-    [4.8, 3.1, 5.0, 1.7],
-    [1.9, 6.2, 2.5, 1.5]], dtype=np.float32)
+    [[5.2, 1.2, 4.5, 1.5],
+    [4.8, 6.4, 5.0, 1.7],
+    [3.5, 3.2, 2.5, 8.5]], dtype=np.float32)
 
   predictions = sess.run(classe, {x: new_samples})
   

@@ -3,13 +3,14 @@ from __future__ import division
 from __future__ import print_function
 
 import os
-
+ 
 from PIL import Image
 import PIL.ImageOps
 
 import numpy as np
 
 import tensorflow as tf
+
 
 # Chargement du réseau
 savePath = 'SavedNetworks'
@@ -36,7 +37,7 @@ with tf.Session() as sess:
   
   ## Prediction sur une image
   # Lecture de l'image, et préparation de l'image 
-  imageFilename = 'flou.jpg'
+  imageFilename = 'e2.jpg'
   imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
   imageInvert =  PIL.ImageOps.invert(imageGray)
   
@@ -45,6 +46,9 @@ with tf.Session() as sess:
   # conversion en vecteur
   a = np.array(imageInvert)
   flat_arr = a.reshape((1, 784))
-  
-  print("Classe prédite", sess.run(classe, {x: flat_arr}))
 
+  dicoClasses = ["t-shirts", "trousers", "pullovers", "dresses", "coats", "sandals", "shirts", "sneakers", "bags", "ankle boots"]
+  classIndex = sess.run(classe, {x: flat_arr})
+  print("Classe prédite : ", dicoClasses[classIndex[0]], " / label : ", classIndex)
+
+  
