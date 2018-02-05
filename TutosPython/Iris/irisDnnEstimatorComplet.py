@@ -6,6 +6,8 @@ import os
 from six.moves.urllib.request import urlopen
 
 import numpy as np
+import shutil
+
 import tensorflow as tf
 
 # Data sets
@@ -40,9 +42,10 @@ test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
 feature_columns = [tf.feature_column.numeric_column("x", shape=[4])]
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
+
 # If the model_dir exists, we delete it.
 # to avoid accidental multiple trainings.
-visuPath = './VisuDnn/'
+visuPath = './VisuDnn'
 if os.path.exists(visuPath):
   shutil.rmtree(visuPath)
 os.makedirs(visuPath)

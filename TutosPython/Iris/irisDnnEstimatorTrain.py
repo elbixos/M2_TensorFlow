@@ -53,6 +53,14 @@ os.makedirs(visuPath)
 
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
+
+# If the model_dir exists, we delete it.
+# to avoid accidental multiple trainings.
+visuPath = './VisuDnn'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
 classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
                                       hidden_units=[10, 20, 10],
                                       n_classes=3,
