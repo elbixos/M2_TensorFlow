@@ -5,6 +5,8 @@ from __future__ import print_function
 from PIL import Image
 import PIL.ImageOps
 import numpy as np
+import os
+import shutil
 
 import tensorflow as tf
 
@@ -59,8 +61,14 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./VisuMonoCouche/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
+# If the model_dir exists, we delete it.
+# to avoid accidental multiple trainings.
+visuPath = './VisuMonoCouche'
+if os.path.exists(visuPath):
+  shutil.rmtree(visuPath)
+os.makedirs(visuPath)
+
+writer = tf.summary.FileWriter(visuPath, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
 
