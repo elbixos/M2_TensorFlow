@@ -20,7 +20,10 @@ mnist = input_data.read_data_sets('./MNIST_data/')
 # Specify that all features have real-value data
 feature_columns = [tf.feature_column.numeric_column("x", shape=[784])]
 
-
+# sauvegarde en fin d'apprentissage
+visuPath = './VisuDnn'
+if not os.path.exists(visuPath):
+    os.makedirs(visuPath)
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
 classifier = tf.estimator.DNNClassifier(
@@ -29,7 +32,7 @@ classifier = tf.estimator.DNNClassifier(
  optimizer=tf.train.AdamOptimizer(1e-4),
  n_classes=10,
  dropout=0.1,
- model_dir='./MnistDnnModel'
+ model_dir=visuPath
 )
 
 def input(dataset):
@@ -96,28 +99,3 @@ accuracy_score = classifier.evaluate(input_fn=test_input_fn)["accuracy"]
 
 print("Test Accuracy: {0:f}\n".format(accuracy_score))
 
-
-## Prediction sur une image
-# Lecture de l'image, et préparation de l'image 
-imageFilename = 'flou.jpg'
-imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
-imageInvert =  PIL.ImageOps.invert(imageGray)
-
-imageInvert.save('temp.bmp')
-
-
-# conversion en vecteur
-a = np.array(imageInvert)
-flat_arr = a.reshape((1, 784))
-
-predict_input_fn = tf.estimator.inputs.numpy_input_fn(
-  x={"x": flat_arr},
-  num_epochs=1,
-  shuffle=False)
-
-predictions = classifier.predict(input_fn=predict_input_fn)
-
-for p in predictions :
-    class_id = p['class_ids'][0]
-    probability = p['probabilities'][class_id]
-    print ("je pense que c'est un : ",class_id, "avec une proba de ",probability )   

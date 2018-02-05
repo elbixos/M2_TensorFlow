@@ -60,7 +60,7 @@ sess = tf.Session()
 
 
 # Configuration de TensorBoard
-pathLog="./pathLog/";
+pathLog="./VisuMonoCouche/";
 writer = tf.summary.FileWriter(pathLog, sess.graph)
 tf.summary.scalar('Entropie Croisee', cross_entropy)
 tf.summary.scalar('Precision', accuracy)
@@ -87,18 +87,18 @@ print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.t
 
 ## Prediction sur une image
 # Lecture de l'image, et préparation de l'image 
-imageFilename = '5.png'
+imageFilename = 'images/5.png'
 imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
 imageInvert =  PIL.ImageOps.invert(imageGray)
 
-imageInvert.save('temp.bmp')
+#imageInvert.save('temp.bmp')
 
 
 # conversion en vecteur
 a = np.array(imageInvert)
 flat_arr = a.reshape((1, 784))
 
-print("Classe prédite", sess.run(classe, {x: flat_arr}))
+print("\nJe pense que c'est un ", sess.run(classe, {x: flat_arr}))
 
 
 

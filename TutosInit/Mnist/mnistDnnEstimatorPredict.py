@@ -17,7 +17,7 @@ with tf.Session() as sess:
 
   # Chargement du réseau
   basePath = 'SavedNetworksEstimator'
-  tmpDir = '1517595395'
+  tmpDir = '1517839700'
   savePathFull = os.path.join(basePath, tmpDir)
   print ("Restoring from ", savePathFull)
 
@@ -34,11 +34,11 @@ with tf.Session() as sess:
 
   ## Prediction sur une image
   # Lecture de l'image, et préparation de l'image 
-  imageFilename = 'flou.jpg'
+  imageFilename = 'images/flou.jpg'
   imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
   imageInvert =  PIL.ImageOps.invert(imageGray)
 
-  imageInvert.save('temp.bmp')
+  #imageInvert.save('temp.bmp')
 
 
   # conversion en vecteur
