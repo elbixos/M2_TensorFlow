@@ -62,23 +62,6 @@ train_input_fn = tf.estimator.inputs.numpy_input_fn(
 classifier.train(input_fn=train_input_fn, steps=10000)
 
 
-# Save Model
-
-def serving_input_receiver_fn():
-  feature_spec = {'x': tf.FixedLenFeature([784],tf.float32)}
-  serialized_tf_example = tf.placeholder(dtype=tf.string,
-                                         shape=[None],
-                                         name='input_tensors')
-  receiver_tensors = {'inputs': serialized_tf_example}
-  features = tf.parse_example(serialized_tf_example, feature_spec)
-  return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
-
-savePath = './SavedNetworksEstimator/'
-    
-classifier.export_savedmodel(savePath, serving_input_receiver_fn)
-
-
-
 # Evaluation sur la base d'apprentissage
 train_input_eval_fn = tf.estimator.inputs.numpy_input_fn(
  x={"x": getFeatures(mnist.train)},

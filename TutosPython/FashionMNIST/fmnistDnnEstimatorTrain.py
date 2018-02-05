@@ -74,8 +74,9 @@ def serving_input_receiver_fn():
   
 # sauvegarde en fin d'apprentissage
 savePath = './SavedNetworksEstimator/'
-if not os.path.exists(savePath):
-    os.makedirs(savePath)
+if os.path.exists(savePath):
+  shutil.rmtree(savePath)
+os.makedirs(savePath)
     
 classifier.export_savedmodel(savePath, serving_input_receiver_fn)
 
