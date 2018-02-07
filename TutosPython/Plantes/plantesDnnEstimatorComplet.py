@@ -15,17 +15,7 @@ IRIS_TRAINING = "DATA/falseTraining.csv"
 
 IRIS_TEST = "DATA/falseTest.csv"
 
-# If the training and test sets aren't stored locally, download them.
-if not os.path.exists(IRIS_TRAINING):
-    raw = urlopen(IRIS_TRAINING_URL).read()
-    with open(IRIS_TRAINING, "wb") as f:
-        f.write(raw)
-
-if not os.path.exists(IRIS_TEST):
-    raw = urlopen(IRIS_TEST_URL).read()
-    with open(IRIS_TEST, "wb") as f:
-        f.write(raw)
-
+        
 # Load datasets.
 training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
   filename=IRIS_TRAINING,
@@ -36,8 +26,18 @@ test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
   target_dtype=np.int,
   features_dtype=np.float32)
 
+print ("Apprentissage")
+print ("nb Exemples", len(training_set.target))
+print ("taille features", len(training_set.data[0]))
+print ("min classe id", min(training_set.target))
+print ("max classe id", max(training_set.target))
+
+print ("Generalisation")
+print ("nb Exemples", len(test_set.target))
+print ("taille features", len(test_set.data[0]))
+
 # Specify that all features have real-value data
-feature_columns = [tf.feature_column.numeric_column("x", shape=[4])]
+feature_columns = [tf.feature_column.numeric_column("x", shape=[726])]
 
 # Build 3 layer DNN with 10, 20, 10 units respectively.
 
@@ -50,7 +50,7 @@ os.makedirs(visuPath)
 
 classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
                                       hidden_units=[256,32],
-                                      n_classes=68,
+                                      n_classes=71,
                                       model_dir=visuPath)
 # Define the training inputs
 train_input_fn = tf.estimator.inputs.numpy_input_fn(

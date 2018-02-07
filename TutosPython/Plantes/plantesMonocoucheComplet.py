@@ -36,16 +36,16 @@ with tf.name_scope('X'):
 with tf.name_scope('Y_True'):
     # sorties voulues
     y_int = tf.placeholder(tf.uint8, [None], name = "Y_int")
-    y_ = tf.one_hot(y_int, depth=68, name = "Y_True")
+    y_ = tf.one_hot(y_int, depth=70, name = "Y_True")
 
 
 
 # Le modèle
 with tf.name_scope("Weights"):
-	W = tf.Variable(tf.zeros([726, 68]),name ="W")
+	W = tf.Variable(tf.zeros([726, 70]),name ="W")
 
 with tf.name_scope("Biases"):
-	b = tf.Variable(tf.zeros([68]), name = "b")
+	b = tf.Variable(tf.zeros([70]), name = "b")
 	
 with tf.name_scope("Score"):
 	score = tf.matmul(x, W) + b
