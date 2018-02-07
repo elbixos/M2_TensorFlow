@@ -338,31 +338,11 @@ Cette fois ci, les sorties sont :
 Nous avons en fait lancé deux runs (deux calculs de y). La première fois, x est un réel, la seconde fois x est un tableau de réels. Dans le second cas, pour chaque valeur de x, une valeur est calculée pour y.
 Notre programme a donc mis en place une procédure de calcul (le graphe de calcul) que l'on peut utiliser de multiples fois, avec différentes valeurs d'entrées (qui de plus prennent des formes différentes).
 Une grande partie de la force de TensorFlow tient dans ces notions.
-Voici donc le code du programme complet :
 
-\begin{mypython} 
-import tensorflow as tf
+Voici donc le code du programme complet. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/PremiersCalculs/calculTensorFlow.py+
 
-x = tf.placeholder(tf.float32, name="x")
-
-W = tf.Variable([.3], dtype=tf.float32, name="W")
-b = tf.Variable([-.3], dtype=tf.float32, name="b")
-
-y = W*x + b
-
-print(y)
-
-sess = tf.Session()
-
-init = tf.global_variables_initializer()
-sess.run(init)
-
-resu = sess.run(y, {x:2}) 
-print(resu)
-
-resu = sess.run(y, {x:[1, 2, 3]}) 
-print(resu)
-\end{mypython} 
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/PremiersCalculs/calculTensorFlow.py}
 
 \subsection{Premiers pas avec Tensorboard}
 
@@ -388,7 +368,7 @@ On lance ensuite TensorBoard sur le répertoire de Log avec une ligne dépendant
 
 Sous windows :
 \begin{mybash}
-tensorboard.exe --logdir=./pathLog
+tensorboard --logdir=./pathLog
 \end{mybash}
 Sous linux :
 \begin{mybash}
@@ -492,53 +472,11 @@ Enfin la dernière ligne affiche les valeurs finales trouvées :
 \end{myoutput}
 
 On voit que notre programme a trouvé pour $W$ et $b$ des valeurs très proches des valeurs cherchées (-1,1)
-Voici donc le code complet de ce programme
-\begin{mypython}
-import tensorflow as tf
+Voici donc le code du programme complet. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/RegressionLineaire/regressionLineaire.py+
 
-W = tf.Variable([.3], dtype=tf.float32, name="W")
-b = tf.Variable([-.3], dtype=tf.float32, name="b")
-x = tf.placeholder(tf.float32, name="x")
-sortieCalculee = W*x + b
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/RegressionLineaire/regressionLineaire.py}
 
-sortieVoulue = tf.placeholder(tf.float32, name="sortieVoulue")
-
-squared_deltas = tf.square(sortieCalculee - sortieVoulue)
-erreur = tf.reduce_sum(squared_deltas)
-
-
-sess = tf.Session()
-
-
-init = tf.global_variables_initializer()
-sess.run(init)
-
-
-print(sess.run(sortieCalculee, {x: [1, 2, 3, 4]}))
-
-print("erreur totale :", sess.run(erreur, {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]}))
-
-
-fixW = tf.assign(W, [-1.])
-fixb = tf.assign(b, [1.])
-sess.run([fixW, fixb])
-
-print("erreur totale :", sess.run(erreur, {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]}))
-
-
-optimizer = tf.train.GradientDescentOptimizer(0.01)
-train = optimizer.minimize(erreur)
-
-sess.run(init) # reset values to incorrect defaults.
-for i in range(1000):
-  sess.run(train, {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]})
-
-print("(W,b finaux) :", sess.run([W, b]))
-
-pathLog="./pathLog/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
-writer.close()
-\end{mypython}
 Voici également le graphe de calcul que notre programme a utilisé
 \begin{figure}[H]
 
@@ -568,45 +506,10 @@ for i in range(1000):
   summary, _ = sess.run([merged,train], {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]})
   writer.add_summary(summary, i)
 \end{mypython}
-Si une partie des notions utilisées ici nous échappe, voici néanmoins un code complet, fonctionnel :
-\begin{mypython}
-import tensorflow as tf
+Si une partie des notions utilisées ici nous échappe, voici néanmoins le code du programme complet. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/RegressionLineaire/regressionLineaireTensorBoard.py+
 
-## Définition des variables 
-W = tf.Variable([.3], dtype=tf.float32, name="W")
-b = tf.Variable([-.3], dtype=tf.float32, name="b")
-x = tf.placeholder(tf.float32, name="x")
-sortieCalculee = W*x + b
-
-sortieVoulue = tf.placeholder(tf.float32, name="sortieVoulue")
-
-squared_deltas = tf.square(sortieCalculee - sortieVoulue)
-erreur = tf.reduce_sum(squared_deltas)
-
-
-optimizer = tf.train.GradientDescentOptimizer(0.01)
-train = optimizer.minimize(erreur)
-
-sess = tf.Session()
-
-# Configuration de TensorBoard
-pathLog="./pathLog/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
-tf.summary.scalar('erreur quadratique', erreur)
-#tf.summary.scalar('W', W)
-merged = tf.summary.merge_all()
-
-init = tf.global_variables_initializer()
-sess.run(init) # reset values to incorrect defaults.
-for i in range(1000):
-  summary, _ = sess.run([merged,train], {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]})
-  writer.add_summary(summary, i)
-  
-print("(W,b finaux) :", sess.run([W, b]))
-
-
-writer.close()
-\end{mypython}
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/RegressionLineaire/regressionLineaireTensorBoard.py}
 
 Voici le résultat final visualisé dans TensorBoard
 \begin{figure}[H]
@@ -681,59 +584,10 @@ Le code est relativement simple. On peut noter que :
 
 \section{Régression Linéaire avec un modèle personnalisé pour Estimator}
 Estimator ne vous verrouille pas dans ses modèles prédéfinis. Supposons que nous voulions créer un modèle personnalisé qui n'est pas intégré dans TensorFlow, en conservant  l'abstraction de haut niveau de jeu de données, l' alimentation, la formation, etc. de Estimator. Içi, nous allons implémenter notre propre modèle équivalent au LinearRegressor.
-Pour définir un modèle personnalisé qui fonctionne avec Estimator, nous devons utiliser \verb+tf.estimator.Estimator+.  Nous fournissons simplement à Estimator une fonction \verb+model_fn+ qui indique à Estimator comment il peut évaluer les prédictions, les étapes d'entraînement et la perte. Le code est comme suit:
-\begin{mypython}
-import numpy as np
-import tensorflow as tf
+Pour définir un modèle personnalisé qui fonctionne avec Estimator, nous devons utiliser \verb+tf.estimator.Estimator+.  Nous fournissons simplement à Estimator une fonction \verb+model_fn+ qui indique à Estimator comment il peut évaluer les prédictions, les étapes d'entraînement et la perte. voici néanmoins le code du programme complet. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/RegressionLineaire/regressionLineaireTfEstimatorPerso.py+
 
-# Declare list of features, we only have one real-valued feature
-def ma_fn(features, labels, mode):
-  # Build a linear model and predict values
-  W = tf.get_variable("W", [1], dtype=tf.float64)
-  b = tf.get_variable("b", [1], dtype=tf.float64)
-  y = W*features['x'] + b
-  # Loss sub-graph
-  loss = tf.reduce_sum(tf.square(y - labels))
-  # Training sub-graph
-  global_step = tf.train.get_global_step()
-  optimizer = tf.train.GradientDescentOptimizer(0.01)
-  train = tf.group(optimizer.minimize(loss),
-                   tf.assign_add(global_step, 1))
-  # EstimatorSpec connects subgraphs we built to the
-  # appropriate functionality.
-  return tf.estimator.EstimatorSpec(
-      mode=mode,
-      predictions=y,
-      loss=loss,
-      train_op=train)
-
-estimator = tf.estimator.Estimator(model_fn=ma_fn)
-# define our data sets
-x_train = np.array([1., 2., 3., 4.])
-y_train = np.array([0., -1., -2., -3.])
-x_eval = np.array([2., 5., 8., 1.])
-y_eval = np.array([-1.01, -4.1, -7., 0.])
-
-
-# Apprentissage
-input_fn = tf.estimator.inputs.numpy_input_fn(
-    {"x": x_train}, y_train, batch_size=4, num_epochs=None, shuffle=True)
-estimator.train(input_fn=input_fn, steps=1000)
-
-
-# Evaluation en Apprentissage
-train_input_fn = tf.estimator.inputs.numpy_input_fn(
-    {"x": x_train}, y_train, batch_size=4, num_epochs=1000, shuffle=False)
-train_metrics = estimator.evaluate(input_fn=train_input_fn)
-
-# Evaluation en Généralisation
-eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-    {"x": x_eval}, y_eval, batch_size=4, num_epochs=1000, shuffle=False)
-eval_metrics = estimator.evaluate(input_fn=eval_input_fn)
-
-print("train metrics: %r"% train_metrics)
-print("eval metrics: %r"% eval_metrics)
-\end{mypython}
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/RegressionLineaire/regressionLineaireTfEstimatorPerso.py}
 
 \chapter{Première Classification : Base IRIS}
 \section{ Classification de la base IRIS avec un DNN }
@@ -963,90 +817,11 @@ print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.t
 \end{mypython}
 
 \subsubsection{Code complet du réseau linéaire monocouche}
-Le code complet, incluant des instructions de mise en forme pour TensorBoard est le suivant :
-\begin{mypython}
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+Le code complet, incluant des instructions de mise en forme pour TensorBoard est le suivant. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Mnist/mnistMonocoucheComplet.py+
 
-# récupération des bases de données
-from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Mnist/mnistMonocoucheComplet.py}
 
-import tensorflow as tf
-
-with tf.name_scope('X'):
-	# entrées
-	x = tf.placeholder(tf.float32, [None, 784], name = "X")
-
-with tf.name_scope('Y_True'):
-	# sorties voulues
-	y_ = tf.placeholder(tf.float32, [None, 10], name = "Y_True")
-
-# Le modèle
-with tf.name_scope("Weights"):
-	W = tf.Variable(tf.zeros([784, 10]),name ="W")
-
-with tf.name_scope("Biases"):
-	b = tf.Variable(tf.zeros([10]), name = "b")
-	
-with tf.name_scope("Score"):
-	score = tf.matmul(x, W) + b
-
-
-
-# calcul de l'entropie croisée
-# Cross entropy version 1 (un peu instable)
-with tf.name_scope('softmax'):
-	softmax = y = tf.nn.softmax(score)
-with tf.name_scope('cross_entropy'):
-	cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
-
-# Cross entropy version 2
-#with tf.name_scope('cross_entropy'):
-#	cross_entropy = tf.reduce_mean(
-#      tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=score))
-
-# Calcul de la prédiction finale
-with tf.name_scope('Accuracy'):
-	correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
-	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-# Choix d'une méthode de minimisation
-with tf.name_scope('train'):
-	train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
-
-sess = tf.Session()
-
-
-# Configuration de TensorBoard
-pathLog="./pathLog/";
-writer = tf.summary.FileWriter(pathLog, sess.graph)
-tf.summary.scalar('Entropie Croisee', cross_entropy)
-tf.summary.scalar('Precision', accuracy)
-
-#tf.summary.scalar('W', W)
-merged = tf.summary.merge_all()
-
-
-
-init = tf.global_variables_initializer();
-sess.run(init);
-
-for i in range(1000):
-  batch_xs, batch_ys = mnist.train.next_batch(100)
-  summary, _ = sess.run([merged,train_step], feed_dict={x: batch_xs, y_: batch_ys})
-  #print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: batch_xs, y_: batch_ys}))
-
-  writer.add_summary(summary, i)
-  
-
-
-print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: mnist.train.images, y_: mnist.train.labels}))
-print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.test.images, y_: mnist.test.labels}))
-
-writer.close()
-\end{mypython}
 
 \subsubsection{Performances du réseau linéaire monocouche}
 \label{secPerfMnistMono}
@@ -1090,79 +865,11 @@ Le téléchargement de Fashion MNIST doit donc être fait manuellement, depuis \
 \subsubsection{Principe et code complet du réseau linéaire monocouche}
 \label{secFashionMnistMono}
 Compte tenu de ce qui a été dit plus haut, le code est quasiment le même que dans le cas de MNIST vu dans la section \ref{secMnistMono}. 
-Voici donc le code complet du programme.
-\begin{mypython}
-# Copyright 2015 The TensorFlow Authors. All Rights Reserved.
-#
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-#     http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-# ==============================================================================
+Voici donc le code complet du programme. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/FashionMNIST/fmnistMonocoucheComplet.py+
 
-"""A very simple MNIST classifier.
-See extensive documentation at
-https://www.tensorflow.org/get_started/mnist/beginners
-"""
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/FashionMNIST/fmnistMonocoucheComplet.py}
 
-import argparse
-import sys
-
-from tensorflow.examples.tutorials.mnist import input_data
-
-import tensorflow as tf
-
-# Import data
-fashionMnist = input_data.read_data_sets('./FM_DATA/', one_hot=True)
-
-# Create the model
-x = tf.placeholder(tf.float32, [None, 784])
-W = tf.Variable(tf.zeros([784, 10]))
-b = tf.Variable(tf.zeros([10]))
-y = tf.matmul(x, W) + b
-
-# Define loss and optimizer
-y_ = tf.placeholder(tf.float32, [None, 10])
-
-# The raw formulation of cross-entropy,
-#
-#   tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(tf.nn.softmax(y)),
-#                                 reduction_indices=[1]))
-#
-# can be numerically unstable.
-#
-# So here we use tf.nn.softmax_cross_entropy_with_logits on the raw
-# outputs of 'y', and then average across the batch.
-cross_entropy = tf.reduce_mean(
-  tf.nn.softmax_cross_entropy_with_logits(labels=y_, logits=y))
-
-train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
-
-sess = tf.InteractiveSession()
-tf.global_variables_initializer().run()
-# Train
-for _ in range(1000):
-    batch_xs, batch_ys = fashionMnist.train.next_batch(100)
-    sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
-
-# Test trained model
-correct_prediction = tf.equal(tf.argmax(y, 1), tf.argmax(y_, 1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-
-
-print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: fashionMnist.train.images, y_: fashionMnist.train.labels}))
-print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: fashionMnist.test.images, y_: fashionMnist.test.labels}))
-\end{mypython}
 
 \subsubsection{Performances du réseau linéaire monocouche}
 \label{secPerfFMnistMono}
