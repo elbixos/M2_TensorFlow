@@ -12,9 +12,9 @@ import shutil
 import tensorflow as tf
 
 # Data sets
-IRIS_TRAINING = "DATA/falseTraining.csv"
+IRIS_TRAINING = "DATA/trainBase.csv"
 
-IRIS_TEST = "DATA/falseTest.csv"
+IRIS_TEST = "DATA/testBase.csv"
 
 
 # Load datasets.
