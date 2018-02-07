@@ -11,9 +11,9 @@ import shutil
 import tensorflow as tf
 
 # Data sets
-IRIS_TRAINING = "DATA/falseTraining.csv"
+IRIS_TRAINING = "DATA/trainBase.csv"
 
-IRIS_TEST = "DATA/falseTest.csv"
+IRIS_TEST = "DATA/testBase.csv"
 
         
 # Load datasets.
@@ -26,15 +26,6 @@ test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
   target_dtype=np.int,
   features_dtype=np.float32)
 
-print ("Apprentissage")
-print ("nb Exemples", len(training_set.target))
-print ("taille features", len(training_set.data[0]))
-print ("min classe id", min(training_set.target))
-print ("max classe id", max(training_set.target))
-
-print ("Generalisation")
-print ("nb Exemples", len(test_set.target))
-print ("taille features", len(test_set.data[0]))
 
 # Specify that all features have real-value data
 feature_columns = [tf.feature_column.numeric_column("x", shape=[726])]
@@ -49,7 +40,7 @@ if os.path.exists(visuPath):
 os.makedirs(visuPath)
 
 classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
-                                      hidden_units=[256,32],
+                                      hidden_units=[256,100],
                                       n_classes=71,
                                       model_dir=visuPath)
 # Define the training inputs
@@ -61,7 +52,7 @@ train_input_fn = tf.estimator.inputs.numpy_input_fn(
 
 
 # Train model.
-classifier.train(input_fn=train_input_fn, steps=2000)
+classifier.train(input_fn=train_input_fn, steps=15000)
 
 
 # Save Model
