@@ -433,7 +433,7 @@ l' ensemble de données Iris est utilisé pour prédire les espèces de fleurs b
 
 Cette base a 3 classes possibles et chaque exemple présente 4 caractéristiques.
 
-\section{Reseau monocouche boite blanche}
+\section{Réseau monocouche boite blanche}
 Le code complet de ce programme sera donné en fin de section. Voyons quelques grandes étapes.
 
 \subsection{lecture des données}
@@ -580,13 +580,10 @@ for i in range(1000):
 Ce code permet d'obtenir des visualisations telles que celle ci :
 \begin{figure}[H]
 \begin{center}
-\includegraphics[width=15cm]{./figures/scalarIrisMono.png} 
+\includegraphics[width=12cm]{./figures/scalarIrisMono.png} 
 \end{center}
 \caption{Évolution des performances en apprentissage}
 \end{figure}
-
-
-
 
 \subsection{Code du programme complet}
 On peut améliorer un peu notre programme en téléchargeant la base IRIS si on ne l'a pas sur le disque, et effacer le répertoire de visualisation pour éviter qu'il ne se remplisse de données, ce qui donnerait le programme complet suivant contenu dans le fichier :\\
@@ -729,7 +726,7 @@ La multiplication impliquée dans le calcul de l'entropie croisée est donc a pr
 \verb+tf.reduce_mean+ doit calculer la moyenne de ces entropies sur tous les exemples. Le tenseur qu'on lui fournit en entrée etant d'ordre 1, il n'y a pas besoin de spécifier de direction pour cette opération.Sa sortie est un tenseur d'ordre 1 de taille (1).
 
 
-\section{ Réseau multi couche Boite Noire }
+\section{Réseau multi couche Boite Noire }
 Dans cette section, nous reprenons tout ce qui a été fait précédemment, en modifiant le modèle, et en utilisant un réseau pré-codé, intégré dans la classe Estimator.
 
 Ce réseau est de type DNN, nous le créerons avec seulement 3 couches.
