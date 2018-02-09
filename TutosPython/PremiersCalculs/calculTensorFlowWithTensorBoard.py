@@ -19,3 +19,7 @@ print(resu)
 
 resu = sess.run(y, {x:[1, 2, 3]}) 
 print(resu)
+
+pathLog="./SaveHere/";
+writer = tf.summary.FileWriter(pathLog, sess.graph)
+writer.close()

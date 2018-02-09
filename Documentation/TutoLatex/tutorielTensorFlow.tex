@@ -212,6 +212,8 @@ Pour l'installation, nous avons suivi les instructions du tutoriel officiel qui 
 
 https://www.tensorflow.org/install/
 
+A noter pour les installations de TensorFlow avec virtualEnv (sous Linux), il nous semble raisonnable d'avoir un répertoire contenant les environnements virtuels, dont celui correspondant a TensorFlow (disons \verb+~/VirtualEnvs/TensorFlow+) et un répertoire contenant les sources du projet (disons \verb+~/DNN+).
+
 
 \section{Présentation TensorFlow et TensorBoard}
 
@@ -344,6 +346,15 @@ Voici donc le code du programme complet. Ce code est contenu dans le fichier :\\
 
 \lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/PremiersCalculs/calculTensorFlow.py}
 
+\subsubsection{Formalisation des concepts}
+Ceci tient en quelques mots :
+\begin{itemize}
+\item TensorFlow s'appuie sur un \textbf{graphe de calcul}.
+\item Les nœuds de ce graphe sont des \textbf{opérations}.
+\item Sur les arêtes de ce graphe circulent des \textbf{tenseurs}. Ces tenseurs sont les sorties des nœuds du graphe.
+\item Faire des calculs avec TensorFlow, c'est lancer un run en demandant le calcul d'une de ces sorties.
+\end{itemize}
+
 \subsection{Premiers pas avec Tensorboard}
 
 TensorBoard est l'outil de visualisation associé à TensorFlow. Il permet de visualiser le graphe de calcul, mais aussi des valeurs importantes retenues lors des calculs exécutés sur ce graphe de calcul.
@@ -355,25 +366,29 @@ Voyons comment tout ceci se fait.
 
 Ajout de code dans le programme TensorFlow (a la fin du programme précédent) :
 \begin{mypython}
-pathLog="./pathLog/";
+pathLog="./SaveHere/";
 writer = tf.summary.FileWriter(pathLog, sess.graph)
 writer.close()
 \end{mypython}
 Ici, on choisit le répertoire (répertoire de Log) dans lequel seront stockées les informations importantes, et on crée un objet permettant d'écrire les informations de notre programme sur le disque. Ici, nous ne sauvons que le graphe de calcul. Enfin, on ferme cet objet.
+
+Le code du programme complet est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/PremiersCalculs/calculTensorFlowWithTensorBoard.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/PremiersCalculs/calculTensorFlowWithTensorBoard.py}
+
+
+
 On lance notre programme TensorFlow 
 \begin{mybash}
-python .\premiersPas.py
+python .\calculTensorFlowWithTensorBoard.py
 \end{mybash}
-On lance ensuite TensorBoard sur le répertoire de Log avec une ligne dépendant de l'OS utilisé :
+On lance ensuite TensorBoard sur le répertoire de Log avec la ligne suivante :
 
-Sous windows :
 \begin{mybash}
-tensorboard --logdir=./pathLog
+tensorboard --logdir=./SaveHere
 \end{mybash}
-Sous linux :
-\begin{mybash}
-tensorboard --logdir=./pathLog
-\end{mybash}
+
 
 L’exécution donne le message suivant :
 \begin{myoutput}
@@ -393,203 +408,170 @@ Voici une capture de la visualisation obtenue :
 \caption{La fenêtre de visualisation de TensorBoard}
 \end{figure}
 
-On retrouve ici le graphe précédent. Notez le sous graphe en haut a droite (noeud init) correspondant à l'initialisation des variables dont nous avons parlé précédemment. 
-
-\chapter{Premier apprentissage automatique : Régression Linéaire}
-
-\section{Codage de la Régression Lineaire manuelle}
-Il s'agit du problème classique de régression linéaire. on se donne un ensemble de valeurs de $x$, et un ensemble de valeurs attendues pour chacun de ces $x$. L'objectif est de trouver la droite qui passe le plus près de tous ces points.
-\begin{mypython}
-import tensorflow as tf
-
-x = tf.placeholder(tf.float32)
-sortieVoulue = tf.placeholder(tf.float32)
-
-W = tf.Variable([.3], dtype=tf.float32)
-b = tf.Variable([-.3], dtype=tf.float32)
-
-sortieCalculee = W*x + b
-\end{mypython}
-Nous avons bien défini nos entrées :
-\begin{itemize}
-\item $x$ : un placeholder dans lequel nous placerons au moment du run les abscisses des points
-\item $y$ : un placeholder dans lequel nous placerons au moment du run les ordonnées des points
-\end{itemize}
-
-Par ailleurs, nous allons chercher des droites, qui sont paramétrées par leur pente $W$ et leur abscisse à l'origine $b$. Nous avons fixé les valeurs initiales de $W$ et $b$ a respectivement 0.3 et -0.3. Pour un couple $(W,b)$, nous avons une droite qui à $x$ associe $sortieCalculee$.
-Notre problème consiste donc a modifier $W$ et $b$ pour que $sortieCalculee$ soit aussi prêt que possible de $sortieVoulue$.
-Pour un couple $(W,b)$, évaluons l'erreur que l'on commet. on peut mesurer la somme des erreurs quadratiques sur chaque entrée :
-
-\begin{mypython}
-squared_deltas = tf.square(sortieCalculee - sortieVoulue)
-erreur = tf.reduce_sum(squared_deltas)
-\end{mypython}
-Ajoutons enfin le run qui permettra de faire ces calculs pour les valeurs initiales de W et b :
-\begin{mypython}
-sess = tf.Session()
-
-init = tf.global_variables_initializer()
-sess.run(init)
-
-print("erreur :",sess.run(erreur,{x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]}))
-\end{mypython}
-Pour nos valeurs initiales, l'erreur totale est donnée par la sortie suivante
-\begin{myoutput}
-erreur : 23.66
-\end{myoutput}
-De fait, quelques calculs rapides permettrait de trouver les meilleures valeurs possible de W,b : (-1, 1). Dans le cas particulier des x et sortieVoulue donnés, il existe réellement une droite qui passe par ces points...
-
-Essayons de vérifier cela 
-\begin{mypython}
-fixW = tf.assign(W, [-1.])
-fixb = tf.assign(b, [1.])
-sess.run([fixW, fixb])
-
-print("erreur :",sess.run(erreur,{x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]}))
-\end{mypython}
-Les deux premières lignes créent chacune un noeud dont l'objectif est de corriger les valeurs de $W$ et $b$. La troisième ligne lance le calcul sur ces nœuds, modifiant ainsi les valeurs de nos variables
-Enfin la dernière ligne calcule l'erreur pour les $x$ et $sortieVoulue$ fournis avec le résultat suivant :
-\begin{myoutput}
-erreur : 0.0
-\end{myoutput}
-Essayons maintenant de trouver automatiquement ces valeurs pour W et b :
-\begin{mypython}
-optimizer = tf.train.GradientDescentOptimizer(0.01)
-train = optimizer.minimize(erreur)
-
-sess.run(init) # reset values to incorrect defaults.
-for i in range(1000):
-  sess.run(train, {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]})
-
-print("(W,b finaux) :", sess.run([W, b]))
-\end{mypython}
-Pour cela, nous utilisons un objet \textbf{optimizer} prédéfini par TensorFlow, et qui opérera une descente de gradient (avec un pas de 0.0.1). On définit un nœud de calcul (train) dont le but est de minimiser  l'erreur.
-La ligne suivante réinitialise les valeurs de $W$ et $b$ à (0.3, -0.3)
-puis, 1000 fois de suite, on calcule le nœud train. Chaque itération améliore un peu les valeurs $(W et b)$. Il faut noter que nulle part, on ne spécifie que les valeurs à modifier sont $W$ et $b$... le programme le devine à partir du graphe : $W$ et $b$ sont les seules variables du graphe....
-Enfin la dernière ligne affiche les valeurs finales trouvées :
-\begin{myoutput}
-(W,b finaux):[array([-0.9999969], dtype=float32), array([0.9999908], dtype=float32)]
-\end{myoutput}
-
-On voit que notre programme a trouvé pour $W$ et $b$ des valeurs très proches des valeurs cherchées (-1,1)
-Voici donc le code du programme complet. Ce code est contenu dans le fichier :\\
-\verb+DNN/Documentation/TutosPython/RegressionLineaire/regressionLineaire.py+
-
-\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/RegressionLineaire/regressionLineaire.py}
-
-Voici également le graphe de calcul que notre programme a utilisé
-\begin{figure}[H]
-
-\begin{center}
-\includegraphics[width=10cm]{./figures/graphRegressionLineaire.png} 
-\end{center}
-\caption{Graphe de calcul pour la régression linéaire}
-\end{figure}
-
-En l'état, une partie de ce graphe est facile a expliquer (en bas a gauche), le reste est assez... mystérieux mais est clairement associé a la descente du gradient...
-
-\section{Suivi de performance dans TensorBoard}
-Nous voulons suivre l’évolution de l'erreur au cours de l'apprentissage des $W$,$b$ du programme précédent et la visualiser à l'aide de TensorBoard.
-Il va falloir modifier notre programme TensorFlow pour logger cette erreur. Les lignes à insérer étant réparties un peu partout, nous indiquerons chaque modification séparément et fourniront le code complet en fin de section.
-
-Tout d'abord, il faut signaler que l'on s'intéresse à l'erreur. Ceci est fait par la ligne suivante :
-\begin{mypython}
-tf.summary.scalar('erreur quadratique', erreur)
-\end{mypython}
-De ce que nous avons compris, on peut s’intéresser à plusieurs paramètres, et il faudra les fusionner pour les logger avec la ligne suivante :
-\begin{mypython}
-merged = tf.summary.merge_all()
-\end{mypython}
-Lors de chaque run, pendant l’entraînement, il faudra demander le calcul de ce merged. Enfin, le résumé devra être sauvé grâce au writer de TensorBoard... 
-\begin{mypython}
-for i in range(1000):
-  summary, _ = sess.run([merged,train], {x: [1, 2, 3, 4], sortieVoulue: [0, -1, -2, -3]})
-  writer.add_summary(summary, i)
-\end{mypython}
-Si une partie des notions utilisées ici nous échappe, voici néanmoins le code du programme complet. Ce code est contenu dans le fichier :\\
-\verb+DNN/Documentation/TutosPython/RegressionLineaire/regressionLineaireTensorBoard.py+
-
-\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/RegressionLineaire/regressionLineaireTensorBoard.py}
-
-Voici le résultat final visualisé dans TensorBoard
-\begin{figure}[H]
-
-\begin{center}
-\includegraphics[width=10cm]{./figures/TBScalarRegression.png} 
-\end{center}
-\caption{Visualisation de l'évolution de l'erreur lors de l'apprentissage}
-\end{figure}
-
-\section{Régression Linéaire avec Estimator}
-
-Estimator est une bibliothèque TensorFlow de haut niveau qui simplifie la mécanique de l'apprentissage automatique, notamment:
-\begin{itemize}
-\item exécuter des boucles d'entraînement
-\item exécuter des boucles d'évaluation
-\item gérer des ensembles de données
-\end{itemize}
-
-Estimator définit de nombreux modèles courants.
-Utilisons le ici pour le problème précédent de régression linéaire
-\begin{mypython}
-# NumPy is often used to load, manipulate and preprocess data.
-import numpy as np
-import tensorflow as tf
-
-# Declare list of features. We only have one numeric feature. There are many
-# other types of columns that are more complicated and useful.
-feature_columns = [tf.feature_column.numeric_column("x", shape=[1])]
-
-# An estimator is the front end to invoke training (fitting) and evaluation
-# (inference). There are many predefined types like linear regression,
-# linear classification, and many neural network classifiers and regressors.
-# The following code provides an estimator that does linear regression.
-estimator = tf.estimator.LinearRegressor(feature_columns=feature_columns)
-
-# TensorFlow provides many helper methods to read and set up data sets.
-# Here we use two data sets: one for training and one for evaluation
-# We have to tell the function how many batches
-# of data (num_epochs) we want and how big each batch should be.
-x_train = np.array([1., 2., 3., 4.])
-y_train = np.array([0., -1., -2., -3.])
-x_eval = np.array([2., 5., 8., 1.])
-y_eval = np.array([-1.01, -4.1, -7, 0.])
-
-input_fn = tf.estimator.inputs.numpy_input_fn(
-    {"x": x_train}, y_train, batch_size=4, num_epochs=None, shuffle=True)
-
-train_input_fn = tf.estimator.inputs.numpy_input_fn(
-    {"x": x_train}, y_train, batch_size=4, num_epochs=1000, shuffle=False)
-
-eval_input_fn = tf.estimator.inputs.numpy_input_fn(
-    {"x": x_eval}, y_eval, batch_size=4, num_epochs=1000, shuffle=False)
-
-# We can invoke 1000 training steps by invoking the  method and passing the
-# training data set.
-estimator.train(input_fn=input_fn, steps=1000)
-
-# Here we evaluate how well our model did.
-train_metrics = estimator.evaluate(input_fn=train_input_fn)
-eval_metrics = estimator.evaluate(input_fn=eval_input_fn)
-
-print("train metrics: %r"% train_metrics)
-print("eval metrics: %r"% eval_metrics)
-\end{mypython}
-
-Le code est relativement simple. On peut noter que :
-\begin{itemize}
-\item on ne construit plus le graphe nous même
-\item On ne lance plus de run manuellement. Tout ceci est fait dans les fonctions train et evaluate.
-\end{itemize}
-
-\section{Régression Linéaire avec un modèle personnalisé pour Estimator}
-Estimator ne vous verrouille pas dans ses modèles prédéfinis. Supposons que nous voulions créer un modèle personnalisé qui n'est pas intégré dans TensorFlow, en conservant  l'abstraction de haut niveau de jeu de données, l' alimentation, la formation, etc. de Estimator. Içi, nous allons implémenter notre propre modèle équivalent au LinearRegressor.
-Pour définir un modèle personnalisé qui fonctionne avec Estimator, nous devons utiliser \verb+tf.estimator.Estimator+.  Nous fournissons simplement à Estimator une fonction \verb+model_fn+ qui indique à Estimator comment il peut évaluer les prédictions, les étapes d'entraînement et la perte. voici néanmoins le code du programme complet. Ce code est contenu dans le fichier :\\
-\verb+DNN/Documentation/TutosPython/RegressionLineaire/regressionLineaireTfEstimatorPerso.py+
-
-\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/RegressionLineaire/regressionLineaireTfEstimatorPerso.py}
+On retrouve ici le graphe précédent. Notez le sous graphe en haut a droite (noeud init) correspondant à l'initialisation des variables dont nous avons parlé précédemment.
+On verra plus loin que TensorBoard nous permet aussi de visualiser l'évolution de nos apprentissages...
 
 \chapter{Première Classification : Base IRIS}
+Sur cette base comme pour les autres, nous allons considérer deux cas :
+\begin{itemize}
+\item on crée le classifieur manuellement (boite blanche)
+\item on utilise un classifieur prédéfini (boite noire)
+\end{itemize}
+
+Cette base a 3 classes possibles et chaque exemple présente 4 caractéristiques.
+
+\section{Reseau monocouche boite blanche}
+Le code complet de ce programme sera donné en fin de section. Voyons quelques grandes étapes.
+
+\subsection{lecture des données}
+
+Supposons que les données soient déja présentes sur le disque, on les lira comme suit, par exemple pour la base d'apprentissage.
+
+\begin{mypython}
+# Load datasets.
+training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
+  filename="training_set.csv",
+  target_dtype=np.int,
+  features_dtype=np.float32)
+\end{mypython}
+
+L'objet \verb+training_set+ a un champ \verb+data+ qui contient les paramètres des exemples et un champ \verb+ target+ qui contient les labels des classes.
+
+\subsection{Construction du réseau}
+\subsubsection{Les entrées}
+On crée ensuite les placeholders pour entrer ces données:
+X est bien de taille 4.  
+\begin{mypython}
+with tf.name_scope('X'):
+	# entrées
+	x = tf.placeholder(tf.float32, [None, 4], name = "X")
+
+with tf.name_scope('Y_True'):
+    # sorties voulues
+    y_int = tf.placeholder(tf.uint8, [None], name = "Y_int")
+    y_ = tf.one_hot(y_int, depth=3, name = "Y_True")
+
+\end{mypython}
+A noter que l'on crée ici un noeud \verb+y_+ qui transforme le label (entier) d'une classe en un \textbf{hot vector}.
+Par exemple, le label 0 parmi 3 classes possibles se transforme en hot vecteur : \verb+[1,0,0]+\\
+
+\subsubsection{Le modèle}
+Définissons notre modèle : un réseau monocouche linéaire.
+Nous avons 3 neurones de sortie (1 par classe).
+Chaque neurone a 4 entrées (les 4 paramètres).
+Nous avons 4 poids et 1 biais par neurone.
+Le score calculé pour chaque classe est classique.
+\begin{mypython}
+# Le modèle
+with tf.name_scope("Weights"):
+	W = tf.Variable(tf.zeros([4, 3]),name ="W")
+
+with tf.name_scope("Biases"):
+	b = tf.Variable(tf.zeros([3]), name = "b")
+	
+with tf.name_scope("Score"):
+	score = tf.matmul(x, W) + b
+\end{mypython}
+Les lignes de type \verb+with tf.name_scope("Score"):+ servent juste à regrouper certains nœuds pour la visualisation avec TensorBoard.
+
+\subsubsection{optimisation du modèle}
+Pour trouver les meilleurs poids $(W,b)$ du réseau, il nous faut : un critère à minimiser, et un algorithme de minimisation.
+
+
+Le critère à minimiser sera pour nous \textbf{l'entropie croisée}.
+Pour le calculer, nous transformons les scores de chaque sortie en une probabilité (fonction \verb+softmax+). On veut ensuite calculer une distance entre ce vecteur de probabilité et la distribution voulue (le hot vector d'entrée). L'entropie croisée fera office de distance.
+\begin{mypython}
+with tf.name_scope('softmax'):
+	y = tf.nn.softmax(score)
+with tf.name_scope('cross_entropy'):
+	cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), reduction_indices=[1]))
+\end{mypython}
+
+Pour savoir quelle est la classe prédite il faut regarder quelle sortie a donné le plus fort score :
+\begin{mypython}
+classe = tf.argmax(y,1)    
+\end{mypython}
+
+Pour mesurer la précision (le taux de reconnaissance), il faut vérifier si la classe retenue pour un exemple est bien la classe donnée par la base. On calcule ensuite le taux moyen de succès sur un ensemble d'exemples :
+\begin{mypython}
+with tf.name_scope('Accuracy'):
+	correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
+	accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
+\end{mypython}
+
+On choisit enfin une méthode d'optimisation. Ici, une descente de gradient appliquée à notre entropie croisée.
+\begin{mypython}
+# Choix d'une méthode de minimisation
+with tf.name_scope('train'):
+	train_step = tf.train.GradientDescentOptimizer(0.5).minimize(cross_entropy)
+\end{mypython}
+Cette descente de gradient définit un nœud de calcul \verb+train_step+ que l'on pourra appeler lors du run.
+
+\subsubsection{lancement des calculs}
+On initialise tout d'abord les variables du réseau.
+\begin{mypython}
+init = tf.global_variables_initializer();
+sess.run(init);
+\end{mypython}
+
+Apprentissage : On lance le run sur le noeud de calcul \verb+train_step+.
+\begin{mypython}
+for i in range(1000):
+  sess.run(train_step, feed_dict={x: training_set.data, y_int: training_set.target})
+\end{mypython}
+
+Evaluons notre apprentissage sur la base d'apprentissage : On lance le run sur le noeud de calcul correspondant à la précision. 
+\begin{mypython}
+print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: training_set.data, y_int: training_set.target}))
+\end{mypython}
+
+Voyons une prédiction : on lance le run sur le noeud de calcul de classe, avec des exemples inconnus.
+\begin{mypython}
+new_samples = np.array(
+  [[6.9, 3.2, 4.5, 1.5],
+   [4.8, 3.1, 5.0, 1.7]], dtype=np.float32)
+  
+print("classe ", sess.run(classe, {x: new_samples}))
+\end{mypython}
+
+A ce stade, nous avons un classifieur fonctionnel.
+Ajoutons quelques améliorations pour la visualisation avec TensorBoard.
+
+\subsection{TensorBoard : Evolution des performances}
+Nous allons modifier notre code pour disposer de graphiques d'évolution de la précision et de l'entropie croisée au cours de l'apprentissage.
+
+Commençons par choisir un répertoire, et ouvrons un \verb+FileWriter+ pour écrire dedans
+\begin{mypython}
+visuPath = './VisuMonoCouche'
+writer = tf.summary.FileWriter(visuPath, sess.graph)
+\end{mypython}
+
+Signalons ensuite que nous voulons suivre l'entropie croisée et la précision. Ces infos seront fusionnées pour le \verb+FileWriter+ en un nœud \verb+merged+.
+\begin{mypython}
+tf.summary.scalar('Entropie Croisee', cross_entropy)
+tf.summary.scalar('Precision', accuracy)
+
+merged = tf.summary.merge_all()
+\end{mypython}
+
+L'apprentissage doit etre un peu modifié : Quand on lance un run d'apprentissage, on calcule aussi le noeud \verb+merged+. Sa sortie est récupérée dans la variable \verb+summary+. Celle ci est passée au \verb+FileWriter+ qui gère la sauvegarde.
+\begin{mypython}
+for i in range(1000):
+  summary, _ = sess.run([merged,train_step], feed_dict={x: training_set.data, y_int: training_set.target})
+
+  writer.add_summary(summary, i)
+\end{mypython}
+
+On peut améliorer un peu notre programme en téléchargeant la base IRIS si on ne l'a pas sur le disque, et effacer le répertoire de visualisation pour éviter qu'il ne se remplisse de données, ce qui donnerait le programme complet suivant contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Iris/irisMonocoucheComplet.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Iris/irisMonocoucheComplet.py}
+
+\subsection{Sauvegarde et Chargement d'un réseau }
+
+
+
+
 \section{ Classification de la base IRIS avec un DNN }
 Nous  allons utiliser  tf.estimator  pour construire un classificateur de réseau neuronal et l'entraîner sur l' ensemble de données Iris pour prédire les espèces de fleurs basées sur la géométrie des sépales / pétales. Pour cet exemple  les données Iris ont été randomisées et divisées en deux CSV distincts:
 \begin {itemize}
