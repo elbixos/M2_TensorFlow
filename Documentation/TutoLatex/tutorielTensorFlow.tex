@@ -339,6 +339,7 @@ Cette fois ci, les sorties sont :
 
 Nous avons en fait lancé deux runs (deux calculs de y). La première fois, x est un réel, la seconde fois x est un tableau de réels. Dans le second cas, pour chaque valeur de x, une valeur est calculée pour y.
 Notre programme a donc mis en place une procédure de calcul (le graphe de calcul) que l'on peut utiliser de multiples fois, avec différentes valeurs d'entrées (qui de plus prennent des formes différentes).
+
 Une grande partie de la force de TensorFlow tient dans ces notions.
 
 Voici donc le code du programme complet. Ce code est contenu dans le fichier :\\
@@ -358,6 +359,7 @@ Ceci tient en quelques mots :
 \subsection{Premiers pas avec Tensorboard}
 
 TensorBoard est l'outil de visualisation associé à TensorFlow. Il permet de visualiser le graphe de calcul, mais aussi des valeurs importantes retenues lors des calculs exécutés sur ce graphe de calcul.
+
 Pour sélectionner les informations a visualiser, nous l'indiquerons a notre programme TensorFlow. Le programme sauvegardera ces informations dans un répertoire spécifique.
 
 On pourra alors lancer l'exécutable TensorBoard qui va analyser ce répertoire, créer un serveur web local que l'on pourra consulter pour visualiser nos informations...
@@ -412,10 +414,21 @@ On retrouve ici le graphe précédent. Notez le sous graphe en haut a droite (no
 On verra plus loin que TensorBoard nous permet aussi de visualiser l'évolution de nos apprentissages...
 
 \chapter{Première Classification : Base IRIS}
+
 Sur cette base comme pour les autres, nous allons considérer deux cas :
 \begin{itemize}
 \item on crée le classifieur manuellement (boite blanche)
 \item on utilise un classifieur prédéfini (boite noire)
+\end{itemize}
+
+Pour chaque classifieur, nous sauverons le modèle après l'apprentissage, et le rechargerons pour les prédictions.
+
+\section{La Base Iris}
+
+l' ensemble de données Iris est utilisé pour prédire les espèces de fleurs basées sur la géométrie des sépales / pétales. Pour cet exemple  les données Iris ont été randomisées et divisées en deux CSV distincts:
+\begin {itemize}
+\item Un ensemble d'apprentissage de 120 échantillons ( \verb+iris_training.csv+ )
+\item	Un ensemble de test de 30 échantillons ( \verb+iris_test.csv+ ).
 \end{itemize}
 
 Cette base a 3 classes possibles et chaque exemple présente 4 caractéristiques.
@@ -424,13 +437,13 @@ Cette base a 3 classes possibles et chaque exemple présente 4 caractéristiques
 Le code complet de ce programme sera donné en fin de section. Voyons quelques grandes étapes.
 
 \subsection{lecture des données}
-
+\label{sec:irisMonocoucheRead}
 Supposons que les données soient déja présentes sur le disque, on les lira comme suit, par exemple pour la base d'apprentissage.
 
 \begin{mypython}
 # Load datasets.
 training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
-  filename="training_set.csv",
+  filename="iris_training.csv",
   target_dtype=np.int,
   features_dtype=np.float32)
 \end{mypython}
@@ -438,6 +451,7 @@ training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
 L'objet \verb+training_set+ a un champ \verb+data+ qui contient les paramètres des exemples et un champ \verb+ target+ qui contient les labels des classes.
 
 \subsection{Construction du réseau}
+\label{sec:irisMonocoucheBuild}
 \subsubsection{Les entrées}
 On crée ensuite les placeholders pour entrer ces données:
 X est bien de taille 4.  
@@ -507,7 +521,7 @@ with tf.name_scope('train'):
 \end{mypython}
 Cette descente de gradient définit un nœud de calcul \verb+train_step+ que l'on pourra appeler lors du run.
 
-\subsubsection{lancement des calculs}
+\subsection{lancement des calculs}
 On initialise tout d'abord les variables du réseau.
 \begin{mypython}
 init = tf.global_variables_initializer();
@@ -538,6 +552,7 @@ A ce stade, nous avons un classifieur fonctionnel.
 Ajoutons quelques améliorations pour la visualisation avec TensorBoard.
 
 \subsection{TensorBoard : Evolution des performances}
+\label{sec:irisMonocoucheTensorBoard}
 Nous allons modifier notre code pour disposer de graphiques d'évolution de la précision et de l'entropie croisée au cours de l'apprentissage.
 
 Commençons par choisir un répertoire, et ouvrons un \verb+FileWriter+ pour écrire dedans
@@ -562,76 +577,181 @@ for i in range(1000):
   writer.add_summary(summary, i)
 \end{mypython}
 
+Ce code permet d'obtenir des visualisations telles que celle ci :
+\begin{figure}[H]
+\begin{center}
+\includegraphics[width=15cm]{./figures/scalarIrisMono.png} 
+\end{center}
+\caption{Évolution des performances en apprentissage}
+\end{figure}
+
+
+
+
+\subsection{Code du programme complet}
 On peut améliorer un peu notre programme en téléchargeant la base IRIS si on ne l'a pas sur le disque, et effacer le répertoire de visualisation pour éviter qu'il ne se remplisse de données, ce qui donnerait le programme complet suivant contenu dans le fichier :\\
 \verb+DNN/Documentation/TutosPython/Iris/irisMonocoucheComplet.py+
 
 \lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Iris/irisMonocoucheComplet.py}
 
 \subsection{Sauvegarde et Chargement d'un réseau }
-
-
-
-
-\section{ Classification de la base IRIS avec un DNN }
-Nous  allons utiliser  tf.estimator  pour construire un classificateur de réseau neuronal et l'entraîner sur l' ensemble de données Iris pour prédire les espèces de fleurs basées sur la géométrie des sépales / pétales. Pour cet exemple  les données Iris ont été randomisées et divisées en deux CSV distincts:
-\begin {itemize}
-\item Un ensemble d'apprentissage de 120 échantillons ( \verb+iris_training.csv+ )
-\item	Un ensemble de test de 30 échantillons ( \verb+iris_test.csv+ ).
+\label{sec:irisMonocoucheSave}
+Il s'agit maintenant de séparer notre programme en deux :
+\begin{itemize}
+\item Un programme qui apprend, évalue les performances et sauve le réseau
+\item Un programme qui charge un réseau entraîné, et fait des prédictions.
 \end{itemize}
- Voici les  codes pour construire le code complet  du classificateur de réseau neuronal:
+
+\subsubsection{Sauvegarde}
+La sauvegarde sera prise en charge par l'objet \verb+train.Saver+, qui va sauver le graphe, les variables du graphes (et d'autres choses plus nébuleuses pour les rédacteurs) dans un répertoire.
+L'essentiel du code qui fait cela est le suivant.
 \begin{mypython}
-from __future__ import absolute_import
-from __future__ import division
-from __future__ import print_function
+saver = tf.train.Saver()
 
-import os
-from six.moves.urllib.request import urlopen
+savePath = './SavedNetworks/myMonoCouchemodel.ckpt'
 
-import numpy as np
-import tensorflow as tf
-
-# Data sets
-IRIS_TRAINING = "iris_training.csv"
-IRIS_TRAINING_URL = "http://download.tensorflow.org/data/iris_training.csv"
-
-IRIS_TEST = "iris_test.csv"
-IRIS_TEST_URL = "http://download.tensorflow.org/data/iris_test.csv"
-
-def main():
-  # If the training and test sets aren't stored locally, download them.
-  if not os.path.exists(IRIS_TRAINING):
-    raw = urlopen(IRIS_TRAINING_URL).read()
-    with open(IRIS_TRAINING, "wb") as f:
-      f.write(raw)
-
-  if not os.path.exists(IRIS_TEST):
-    raw = urlopen(IRIS_TEST_URL).read()
-    with open(IRIS_TEST, "wb") as f:
-      f.write(raw)
+saver.save(sess, savePathFull)  
 \end{mypython}
-Le code ci-dessus importe  tous les modules nécessaires et définit où télécharger et stocker l'ensemble de données : les bases d'apprentissage et de généralisation s'ils ne sont pas stockés localement.
-Ces bases sont au format \textbf{csv}.
+Ceci va générer :
+\begin{itemize}
+\item un fichier \verb+myMonoCouchemodel.ckpt.meta+ qui contient l'architecture du réseau.
+\item un fichier \verb+myMonoCouchemodel.ckpt.data-00000-of-00001+ qui contient les valeurs des variables du réseau à l'instant de sauvegarde.
+\item un fichier \verb+myMonoCouchemodel.ckpt.index+ qui, je crois, contient le nom des noeuds du réseau.
+\item un fichier \verb+checkpoint+ utile mais sans qu'on sache trop pourquoi.
+\end{itemize}
+
+\subsubsection{Chargement}
+le chargement n'est pas trop compliqué non plus :
+\begin{itemize}
+\item on charge le fichier d'architecture, ce qui crée le graphe.
+\item on recharge l'état du réseau dans le graphe.
+\item on récupère les noeuds du graphe qui nous intéressent.
+\end{itemize}
 \begin{mypython}
-training_set = tf.contrib.learn.datasets.base.load_csv_with_header(
-      filename=IRIS_TRAINING,
-      target_dtype=np.int,
-      features_dtype=np.float32)
-test_set = tf.contrib.learn.datasets.base.load_csv_with_header(
-      filename=IRIS_TEST,
-      target_dtype=np.int,
-      features_dtype=np.float32)
+
+sess = tf.Session()
+
+new_saver = tf.train.import_meta_graph('./SavedNetworks/myMonoCouchemodel.ckpt')
+  
+new_saver.restore(sess, tf.train.latest_checkpoint('./SavedNetworks/))
 \end{mypython}
-Le code ci-dessus charge en mémoire les bases d'apprentissage et de généralisation. Notons la fonction en utilisant la fonction \verb+tf.contrib.learn.datasets.base.load_csv_with_header+ qui permet de charger des fichiers \textbf{csv}.
+A ce stade, nous disposons d'un réseau pré-entraîné.
+Notre programme doit donc lui injecter des données et récupérer certaines sorties. Commencons par obtenir du graphe des pointeurs sur tous ces nœuds d'intérêt.
+
+
+Lorsque le réseau a été construit lors de l'apprentissage, nous avons crée par exemple le nœud qui calcule la classe comme suit :
+\begin{mypython}
+with tf.name_scope('Classe'):
+    classe = tf.argmax(y,1, name="classe")
+\end{mypython}
+
+Le nom complet de ce noeud dans le graphe est "Classe/classe:0". "Classe" pour le nameScope s'il y en a un. "classe" correspond le nom du nœud. ":0" est un indice systématiquement ajouté et auto-incrémenté pour éviter les déclarations multiples accidentelles.
+
+Pour une prédiction, nous devons obtenir des pointeurs sur le placeholder x et sur le nœud des classes :
+
+\begin{mypython}
+graph = tf.get_default_graph()
+
+x = graph.get_tensor_by_name("X/X:0")
+  
+classe = graph.get_tensor_by_name("Classe/classe:0")
+\end{mypython}
+Il suffit ensuite de lui fournir normalement les exemples pour obtenir les classes.
+
+\begin{mypython}
+
+new_samples = np.array(
+    [[5.2, 1.2, 4.5, 1.5],
+    [4.8, 6.4, 5.0, 1.7],
+    [3.5, 3.2, 2.5, 8.5]], dtype=np.float32)
+
+predictions = sess.run(classe, {x: new_samples})
+\end{mypython}
+
+\subsection{Programmes de sauvegarde et prédiction complets}
+Dans ces programmes, nous avons ajouté quelques lignes pour paramétrer proprement les noms des fichiers et répertoires de sauvegarde et une procédure qui efface les répertoires de sauvegarde des modèles s'ils existent.
+
+Voici le code du programme qui réalise l'apprentissage, contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Iris/irisMonocoucheTrain.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Iris/irisMonocoucheTrain.py}
+
+
+Voici le code du programme qui réalise les prédictions, contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Iris/irisMonocouchePredict.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Iris/irisMonocouchePredict.py}
+
+
+\subsection{Quelques remarques sur l'implémentation}
+Le lecteur soucieux de faire fonctionner ses programmes pourra sans risque sauter cette section pour revenir dessus quand il aura mieux pris en main TensorFlow.
+
+
+TensorFlow travaille avec des tenseurs (des tableaux multi-dimensionnels).
+Il est intéressant de comprendre quelles tailles ont ces tenseurs dans notre programme.
+
+Dans tous nos programmes, les données insérées dans notre réseau seront de type \verb+NdArray+ de la librairie \verb+numpy+. Leur taille doit correspondre aux placeholders du réseau. Par exemple :
+\begin{itemize}
+\item \verb+training_set.data+ est un NdArray de dimension 2, de taille (120,4)
+\item \verb+training_set.data+ est un NdArray de dimension 1, de taille (120) 
+\end{itemize}
+
+Les placeholders ont les caractéristiques suivantes
+\begin{itemize}
+\item \verb+x+ a pour taille (None,4) : il accepte autant d'exemples que fournis, tous de 4 caractéristiques, chacune en float32.
+\item \verb+Y_+ (les labels) a pour taille (None) : il accepte autant de labels que fournis, tous d'une seule valeur entiere.
+\end{itemize}
+
+Il faut bien comprendre que le calcul de toutes les sorties pour toutes les entrées se fait en une seule opération. Voyons donc le détail de ceci.
+
+la matrice des poids $W$ est un tenseur de dimension 2, de taille (4,3).
+
+le réseau calcule $tf.matmul(x,W)$ : Le résultat de cette opération est, dans le cas d'un seul exemple, un tenseur de dimension 2, de taille (1, 3)
+
+On lui ajoute le biais $b$, qui est un tenseur de dimension 1, de taille 3.
+Le résultat est toujours un tenseur de dimension 1, de taille 3 représentant chaque le score en sortie du réseau pour l'exemple proposé.
+
+Dans le cas ou l'on présente 120 exemples:
+
+Le résultat de $tf.matmul(x,W)$ est un tenseur de dimension 2, de taille (120, 3).
+On lui ajoute le tenseur de biais, de dimension 1, et de taille 3.
+La réussite opérationnelle de cette opération nous surprend.
+Il serait opportun de comprendre comment l'addition de tenseur fonctionne. Cela échappe un peu aux rédacteurs de ce rapport mais on y travaille...Voyons la suite...
+
+A partir de ces scores, on calcule les probabilités $y$, qui sont toujours un tenseur d'ordre 2, de taille (120, 3)
+
+\verb+y_+, le hot vector correspondant aux labels est lui aussi un tenseur d'ordre 2, de taille (120,3).
+
+La multiplication impliquée dans le calcul de l'entropie croisée est donc a priori une multiplication point à point.
+
+\verb+tf.reduce_sum+ doit calculer l'entropie pour un exemple. Il opère bien sur la direction 1 (il somme les 3 sorties). Sa sortie est un tenseur d'ordre 1 de taille (120).
+
+\verb+tf.reduce_mean+ doit calculer la moyenne de ces entropies sur tous les exemples. Le tenseur qu'on lui fournit en entrée etant d'ordre 1, il n'y a pas besoin de spécifier de direction pour cette opération.Sa sortie est un tenseur d'ordre 1 de taille (1).
+
+
+\section{ Réseau multi couche Boite Noire }
+Dans cette section, nous reprenons tout ce qui a été fait précédemment, en modifiant le modèle, et en utilisant un réseau pré-codé, intégré dans la classe Estimator.
+
+Ce réseau est de type DNN, nous le créerons avec seulement 3 couches.
+
+la classe Estimator dont hérite notre réseau encapsule la plupart des opérations et donne un code beaucoup plus classique, tout le graphe étant masqué. 
+
+\subsection{lecture des données}
+Rien de changé, le lecteur peut se référer à la
+section~\ref{sec:irisMonocoucheRead}.
+
+\subsection{Construction du réseau}
+\label{sec:irisMulticoucheBuild}
 \begin{mypython}
 feature_columns = [tf.feature_column.numeric_column("x", shape=[4])]
 \end{mypython}
-Ce code prépare une variable pour les entrées du modèle (le vecteur de caractéristiques ou \textbf{feature vector}) et spécifie que \textbf{feature vector} est numériques et de dimension 4 (longueur des sépales, largeurs des sépales, longueur des pétales, largeur des pétales).
+Ce code prépare une variable pour les entrées du modèle (le vecteur de caractéristiques ou \textbf{feature vector}) et spécifie que \textbf{feature vector} est numérique et de dimension 4 (longueur des sépales, largeurs des sépales, longueur des pétales, largeur des pétales).
 
 \begin{mypython}
 classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
                                           hidden_units=[10, 20, 10],
                                           n_classes=3,
-                                          model_dir="/tmp/iris_model")
+                                          model_dir="/VisuDnn")
 \end{mypython}
 Ce code crée un Réseau de Neurones Profond (Deep Neural Network ou \textbf{DNN}) que l'on utilisera pour classifier nos données. Pour le construire on lui passe les informations suivantes :
 \begin{itemize}
@@ -641,7 +761,15 @@ Ce code crée un Réseau de Neurones Profond (Deep Neural Network ou \textbf{DNN
 \item le répertoire dans lequel TensorFlow sauvegardera en particulier les données utilisées par  TensorBoard pour la visualisation.
 \end{itemize}
 
-Le code qui suit va lancer l'apprentissage. l'Estimator de TensorFlow impose la structure de code suivante :
+\subsection{Lancement des calculs}
+La classe Estimator propose trois grandes actions lors d'un apprentissage :
+\begin{itemize}
+\item Train : on entraine le réseau
+\item Evaluate : on évalue le réseau sur une base
+\item Predict : on effectue des prédictions sur de nouveaux exemples.
+\end{itemize}
+
+Voyons par exemple comment lancer l'apprentissage. la classe Estimator. impose la structure de code suivante :
 \begin{itemize}
 	\item on définit une fonction spécifiant :
 	\begin{itemize}	
@@ -651,6 +779,7 @@ Le code qui suit va lancer l'apprentissage. l'Estimator de TensorFlow impose la 
 	\end{itemize}
 	\item on lance l'entrainement qui utilise cette fonction un certain nombre de fois.
 \end{itemize}
+
 \begin{mypython}
 train_input_fn = tf.estimator.inputs.numpy_input_fn(
       x={"x": np.array(training_set.data)},
@@ -705,11 +834,12 @@ predict_input_fn = tf.estimator.inputs.numpy_input_fn(
       num_epochs=1,
       shuffle=False)
 
-predictions = list(classifier.predict(input_fn=predict_input_fn))
+predictions = classifier.predict(input_fn=predict_input_fn)
   
 for p in predictions :
-    chaine =p["classes"]
-    print ("classe ", chaine[0].decode()) 
+    class_id = p['class_ids'][0]
+    probability = p['probabilities'][class_id]
+    print ("je pense que c'est : ",dicoClasses[class_id], "avec une proba de ",probability )
 
 \end{mypython}
 
@@ -720,6 +850,22 @@ Test Accuracy: 0.966667
 classe  1
 classe  2
 \end{myoutput}
+
+\subsection{TensorBoard : Evolution des performances}
+Cette fois ci, nous n'avons pas à spécifier quelles variables nous intéressent dans le réseau. Estimator procède a la sauvegarde de l'évolution des performances automatiquement.
+
+Il suffit donc de lancer TensorBoard sur le répertoire que nous avons passé a Estimator lors de la création du modèle.
+Nous avions écrit :
+\begin{mypython}
+classifier = tf.estimator.DNNClassifier(feature_columns=feature_columns,
+                                      hidden_units=[10, 20, 10],
+                                      n_classes=3,
+                                      model_dir="./VisuDnn")
+\end{mypython}
+on lancera donc dans un autre terminal la commande 
+\begin{mybash}
+tensorboard --logdir=./VisuDnn
+\end{mybash}
 
 Ci dessous, les figures respectives de l'évolution des paramètres du réseau pendant l'apprentissage et du graphe de calcul.
 \begin{figure}[H]
@@ -738,24 +884,157 @@ Ci dessous, les figures respectives de l'évolution des paramètres du réseau p
 \caption{Graphe de calcul du DNN utilisé sur la base IRIS}
 \end{figure}
 
-\chapter{bases MNIST et Fashion MNIST}
-\section{MNIST}
+\subsection{Code du programme complet}
 
-\subsection{Récupération et chargement de la base MNIST}
+Notre programme est maintenant complet. Nous pouvons le trouver dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Iris/irisDnnEstimatorComplet.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Iris/irisDnnEstimatorComplet.py}
+
+\subsection{Sauvegarde et Chargement avec Estimator }
+\label{sec:irisDnnSave}
+Il s'agit maintenant de séparer notre programme en deux :
+\begin{itemize}
+\item Un programme qui apprend, évalue les performances et sauve le réseau
+\item Un programme qui charge un réseau entraîné, et fait des prédictions.
+\end{itemize}
+
+Nous ne disposons plus d'un graphe, ni même d'une session. La procédure est donc totalement différente de ce qui a été vu dans la section~\ref{sec:irisMonocoucheSave}.
+
+\subsubsection{Sauvegarde}
+Les classifieurs de la classe Estimator savent sauvegarder leurs modèles grâce a la méthode \verb+export_savedmodel+.
+
+Cependant cette méthode suppose la définition d'un modèle de service des données. 
+Le modèle qui suit est fonctionnel et a été reconstitué à l'aide de fragments trouvés sur le web, sans que l'on ne comprenne vraiment tout ce qui s'y passe.
+
+\begin{mypython}
+def serving_input_receiver_fn():
+  feature_spec = {'x': tf.FixedLenFeature([4],tf.float32)}
+  serialized_tf_example = tf.placeholder(dtype=tf.string,
+                                         shape=[None],
+                                         name='input_tensors')
+  receiver_tensors = {'inputs': serialized_tf_example}
+  features = tf.parse_example(serialized_tf_example, feature_spec)
+  return tf.estimator.export.ServingInputReceiver(features, receiver_tensors)
+  
+classifier.export_savedmodel('./savedNetworksEstimator', serving_input_receiver_fn)
+\end{mypython}
+
+Il faut noter que toutes les données sont sauvegardées dans un sous répertoire de celui que nous avons fourni. Le sous répertoire porte un nom correspondant à un timestamp obtenu lors de l'execution. notre programme complet renommera ce repertoire de sauvegarde en
+\verb+./savedNetworksEstimator/lastSave+
+
+Notons également la création d'un tenseur d'entrée pour les données qui porte le nom \verb+input_tensors+.
+
+\subsubsection{Chargement}
+
+Pour le chargement, nous procédons en deux étapes, peu claires.
+\begin{mypython}
+tf.saved_model.loader.load(sess, [tf.saved_model.tag_constants.SERVING], './savedNetworksEstimator/lastSave')
+
+predictor= tf.contrib.predictor.from_saved_model('./savedNetworksEstimator/lastSave')
+\end{mypython}
+
+Enfin, nous récupérons le tenseur d'entrée de nos données :
+\begin{mypython}
+input_tensor=tf.get_default_graph().get_tensor_by_name("input_tensors:0")
+\end{mypython}
+
+Pour introduire un exemple dans le réseau, il faut préparer les données
+\begin{mypython}
+exemple = np.array([6.9, 3.2, 4.5, 1.5], dtype=np.float32)
+
+model_input= tf.train.Example(features=tf.train.Features(feature={
+					'x': tf.train.Feature(float_list=tf.train.FloatList(value=exemple))        
+					}))
+					
+model_input=model_input.SerializeToString()				
+\end{mypython}
+
+Enfin, on peu calculer les prédictions.
+\begin{mypython}
+predictions= predictor({"inputs":[model_input]})
+\end{mypython}
+
+Cette prédiction est un dictionnaire dont la clef "scores" est ce qui nous intéresse :
+
+\begin{mypython}
+classe_id = np.argmax(predictions["scores"])
+\end{mypython}
+
+A ce stade, nous ne savons pas récupérer les probabilités de chaque classe. Nous travaillons encore sur ce point, mais le classifieur est fonctionnel.
+
+\subsection{Programmes de sauvegarde et prédiction complets}
+Dans ces programmes, nous avons ajouté quelques lignes pour paramétrer proprement les noms des fichiers et répertoires de sauvegarde et une procédure qui efface les répertoires de sauvegarde des modèles s'ils existent.
+
+Voici le code du programme qui réalise l'apprentissage, contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Iris/irisDnnEstimatorTrain.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Iris/irisDnnEstimatorTrain.py}
+
+
+Voici le code du programme qui réalise les prédictions, contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Iris/irisDnnEstimatorPredict.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Iris/irisDnnEstimatorPredict.py}
+
+\section{Performances}
+\label{secPerfIris}
+
+Pour information, voici des performances standard obtenues sur la base Iris.
+Monocouche :
+\begin{myoutput}
+Resultats en Apprentissage 0.98333335
+Résultats en Généralisation 0.96666664
+\end{myoutput}
+
+Multicouches :
+\begin{myoutput}
+Resultats en Apprentissage 0.991667
+Résultats en Généralisation 0.966667
+\end{myoutput}
+
+\chapter{bases MNIST et Fashion MNIST}
+\section{La Base MNIST}
+
+La base MNIST est bien connue, il s'agit de reconnaitre des chiffres (10 classes), a partir d'images de 28x28 pixels, que dans un premier temps nous transformerons en un vecteur de 784 valeurs.
+
+\subsection{Lecture des données}
 \label{secGetMnist}
 Lecture des données : Nous importons un module permettant de récupérer la base MNIST, puis on demande à ce module de lire les données. Si elles ne sont pas présentes, il va les télécharger sur le site de MNIST 
 (\verb+http://yann.lecun.com/exdb/mnist/+)
 
 \begin{mypython}
 from tensorflow.examples.tutorials.mnist import input_data
-mnist = input_data.read_data_sets("MNIST_data/", one_hot=True)
+mnist = input_data.read_data_sets("MNIST_data/")
 \end{mypython}
 
-\subsection{Réseau Linéaire monocouche}
-\subsubsection{Modèle du Réseau Linéaire monocouche}
-\label{secMnistMono}
+L'objet contenant nos données permet l'accès aux données d'apprentissage dans \verb+mnist.train.images+ et \verb+mnist.train.labels+.
+Les données de généralisations sont accessible via 
+\verb+mnist.test.images+ et \verb+mnist.test.labels+.
 
-On utilisera ici un modèle purement linéaire contenant une couche de 10 neurones (c'est la couche de sortie).
+
+Lorsque nous voudrons faire de la prédiction, nous partirons d'une image quelconque, qu'il faudra préparer (transformer en image 28x28, inverser le contraste...) On pourra le faire comme suit :
+\begin{mypython}
+imageFilename = 'images/bidon.jpg'
+imageGray = Image.open(imageFilename).resize((28,28)).convert('L')
+imageInvert =  PIL.ImageOps.invert(imageGray)
+
+#imageInvert.save('temp.bmp')
+
+
+# conversion en vecteur
+a = np.array(imageInvert)
+flat_arr = a.reshape((1, 784))
+\end{mypython}
+Ce dernier vecteur pourra être introduit dans les réseaux.
+
+
+\subsection{Mnist : Réseau monocouche boite blanche}
+
+\subsubsection{Construction du modèle}
+\label{secMnistDnnBuild}
+
+On utilisera ici un modèle purement linéaire contenant une couche de 10 neurones (c'est la couche de sortie) tout à fait semblable à celui de la base Iris vu dans la section~\ref{sec:irisMonocoucheBuild}. Simplement, il y a maintenant 10 neurones et 784 entrées.
  
 \begin{mypython}
 # entrées
@@ -772,55 +1051,90 @@ b = tf.Variable(tf.zeros([10]))
 score = tf.matmul(x, W) + b
 \end{mypython}
 
-Pour l'apprentissage des poids $(W,b)$, on utilisera comme critère à minimiser l'entropie croisée.
-Pour cela, la sortie de chaque neurone est transformée en probabilité avec la méthode \verb+softmax+.
-Puis on calcule l'entropie croisée entre cette distribution de probabilité et la distribution de probabilité voulue.
-\begin{mypython}
-y = tf.nn.softmax(score)
-cross_entropy = tf.reduce_mean(-tf.reduce_sum(y_ * tf.log(y), 	reduction_indices=[1]))
-\end{mypython}
+Les calculs d'entropie croisée et de précision sont ceux vu dans la section~\ref{sec:irisMonocoucheBuild}
 
-Pour le calcul de la précision, voici le code
-\begin{mypython}
-correct_prediction = tf.equal(tf.argmax(y,1), tf.argmax(y_,1))
-accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
-\end{mypython}
+\subsubsection{Lancement des calculs}
+\label{secMnistDnnRun}
 
-La partie apprentissage et évaluation sur les deux bases est classique...
+L'apprentissage est très semblable à celui que nous avons fait pour la base Iris, a ceci prêt que nous tirons profit de l'objet mnist qui permet de faire des batch de 100 exemples.
+
+Ici, nous proposons un apprentissage en 1000 passes sur 100 exemples tirés au sort.
+
 \begin{mypython}
 # Apprentissage
 for i in range(1000):
   batch_xs, batch_ys = mnist.train.next_batch(100)
   sess.run(train_step, feed_dict={x: batch_xs, y_: batch_ys})
+\end{mypython}
 
-# Evaluation
-print("Resultats en Apprentissage", sess.run(accuracy, feed_dict={x: mnist.train.images, 	y_: mnist.train.labels}))
+L'évaluation est classique. Par exemple, en généralisation :
+\begin{mypython}
 print("Résultats en Généralisation", sess.run(accuracy, feed_dict={x: mnist.test.images, 	y_: mnist.test.labels}))
 \end{mypython}
 
-\subsubsection{Code complet du réseau linéaire monocouche}
+Pour la prédiction, il faudra lire une image, la transformer en vecteur de taille 784 comme on l'a vu dans la section~\ref{secGetMnist}
+Ce dernier vecteur est alors introduit dans le réseau pour prédiction
+
+\begin{mypython}
+print("\nJe pense que c'est un ", sess.run(classe, {x: flat_arr}))
+\end{mypython}
+
+\subsubsection{Codes complets }
 Le code complet, incluant des instructions de mise en forme pour TensorBoard est le suivant. Ce code est contenu dans le fichier :\\
 \verb+DNN/Documentation/TutosPython/Mnist/mnistMonocoucheComplet.py+
 
 \lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Mnist/mnistMonocoucheComplet.py}
 
+Ci dessous, le code complet du programme en charge de l'apprentissage et de la sauvegarde du modèle. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Mnist/mnistMonocoucheTrain.py+
 
-\subsubsection{Performances du réseau linéaire monocouche}
-\label{secPerfMnistMono}
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Mnist/mnistMonocoucheTrain.py}
+
+Enfin, voici le code complet du programme en charge du chargement d'un réseau et de la réalisation des prédictions. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Mnist/mnistMonocouchePredict.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Mnist/mnistMonocoucheTrain.py}
+
+
+\subsection{Mnist : Réseau multicouches boite noire}
+\label{secMnistMulti}
+
+Le lecteur peut se référer à la section~\ref{sec:irisMulticoucheBuild} pour la construction d'un réseau multicouche avec Estimator.
+Les principes ayant été vu, nous nous bornerons a donner le code complet des trois programmes : Complet, Train, Predict.
+
+\subsubsection{Codes complets }
+Le code complet, incluant des instructions de mise en forme pour TensorBoard est le suivant. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Mnist/mnistDnnEstimatorComplet.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Mnist/mnistDnnEstimatorComplet.py}
+
+Ci dessous, le code complet du programme en charge de l'apprentissage et de la sauvegarde du modèle. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Mnist/mnistDnnEstimatorTrain.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Mnist/mnistDnnEstimatorTrain.py}
+
+Enfin, voici le code complet du programme en charge du chargement d'un réseau et de la réalisation des prédictions. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/Mnist/mnistDnnEstimatorPredict.py+
+
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/Mnist/mnistDnnEstimatorTrain.py}
+
+\subsection{Performances}
+\label{secPerfMnist}
+
 Pour information, voici des performances standard obtenues sur la base MNIST.
+Monocouche :
 \begin{myoutput}
 Résultats en Apprentissage 0.91827273
 Résultats en Généralisation 0.9178
 \end{myoutput}
 
-\subsection{DNN Multicouches}
-\subsubsection{Modèle du Réseau de neurones multicouches}
-\label{secMnistMulti}
+Multicouches :
+\begin{myoutput}
+Resultats en Apprentissage 0.98333335
+Résultats en Généralisation 0.96666664
+\end{myoutput}
 
-Ici, un réseau à deux couches, avec Estimator.
-
-
-\section{Fashion MNIST}
+\section{La base Fashion MNIST}
 
 La base Fashion MNIST ressemble beaucoup à la base MNIST :
 \begin{itemize}
@@ -829,6 +1143,10 @@ La base Fashion MNIST ressemble beaucoup à la base MNIST :
 \item Même nombre d'exemples
 \item Même noms de fichiers
 \end{itemize}
+
+\subsection{Lecture des données}
+\label{secGetFmnist}
+
 De ce fait, nous pouvons utiliser les mêmes procédures pour charger les exemples que celle utilisées pour MNIST. Ces procédures font partie du module exemple de tensorflow que l'on charge comme suit :
 \begin{mypython}
 from tensorflow.examples.tutorials.mnist import input_data
@@ -836,15 +1154,15 @@ from tensorflow.examples.tutorials.mnist import input_data
 La seule modification effective consiste a spécifier le répertoire ou l'on trouve les fichiers de Fashion MNIST :
 \begin{mypython}
 # Import data
-fashionMnist = input_data.read_data_sets('./FM_DATA/', one_hot=True)
+fashionMnist = input_data.read_data_sets('./FM_DATA/')
 \end{mypython}
 C'est cet objet \verb+fashionMnist+ qui fournira les données et les labels lors de l'entrainement et de l'évaluation.
 
 \textbf{ATTENTION :} Nous utilisons içi un module conçu pour MNIST pour lire les données de Fashion MNIST. Conformément à ce qui a été dit dans la section~\ref{secGetMnist}, si le répertoire \verb+./FM_DATA/+ est vide ou n'existe pas, ce module va télécharger la base MNIST dedans !
-Le téléchargement de Fashion MNIST doit donc être fait manuellement, depuis \verb+https://github.com/zalandoresearch/fashion-mnist/+.
+Le téléchargement de Fashion MNIST doit donc être fait manuellement, depuis\\
+\verb+https://github.com/zalandoresearch/fashion-mnist/+.
 
-\subsection{Réseau Linéaire monocouche}
-\subsubsection{Principe et code complet du réseau linéaire monocouche}
+\subsection{Fmnist : Réseau monocouche boite blanche}
 \label{secFashionMnistMono}
 Compte tenu de ce qui a été dit plus haut, le code est quasiment le même que dans le cas de MNIST vu dans la section \ref{secMnistMono}. 
 Voici donc le code complet du programme. Ce code est contenu dans le fichier :\\
@@ -852,31 +1170,31 @@ Voici donc le code complet du programme. Ce code est contenu dans le fichier :\\
 
 \lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/FashionMNIST/fmnistMonocoucheComplet.py}
 
+\subsection{Fmnist : Réseau multicouche boite noire}
+\label{secFashionMnistMulti}
+Compte tenu de ce qui a été dit plus haut, le code est quasiment le même que dans le cas de MNIST vu dans la section \ref{secMnistMulti}. 
+Voici donc le code complet du programme. Ce code est contenu dans le fichier :\\
+\verb+DNN/Documentation/TutosPython/FashionMNIST/fmnistDnnEstimatorComplet.py+
 
-\subsubsection{Performances du réseau linéaire monocouche}
-\label{secPerfFMnistMono}
+\lstinputlisting[style=generalFrame,backgroundcolor=\color{darkwhite}]{../../TutosPython/FashionMNIST/fmnistDnnEstimatorComplet.py}
 
-Voici ses performances
+
+\subsection{Performances}
+\label{secPerfFMnist}
+
+Pour information, voici des performances standard obtenues sur la base Fashion MNIST.
+Monocouche :
 \begin{myoutput}
-Résultats en Apprentissage 0.84214544
-Résultats en Généralisation 0.8273
+Resultats en Apprentissage 0.79394543
+Résultats en Généralisation 0.7783
 \end{myoutput}
-avec une grande variabilité, car on peut aussi obtenir ceci :
+
+Multicouches :
 \begin{myoutput}
-Résultats en Apprentissage 0.7074182
-Résultats en Généralisation 0.6953
+Resultats en Apprentissage 0.889000
+Résultats en Généralisation 0.868800
 \end{myoutput}
 
-On peut noter la baisse de performances par rapport à ce qui était obtenu avec la base MNIST dans la section ~\ref{secPerfMnistMono}.
-
-Selon l'évolution des performances ci-dessous, le réseau monocouche a atteint ses limites.
-
-\begin{figure}[H]
-\begin{center}
-\includegraphics[width=15cm]{./figures/scalarFMnistMono.png} 
-\end{center}
-\caption{Évolution des performances en apprentissage}
-\end{figure}
-
+On peut noter la baisse de performances par rapport à ce qui était obtenu avec la base MNIST dans la section ~\ref{secPerfMnist}.
 
 \end{document}
