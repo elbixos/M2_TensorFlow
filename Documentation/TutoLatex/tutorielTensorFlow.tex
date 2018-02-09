@@ -711,15 +711,14 @@ Le résultat est toujours un tenseur de dimension 1, de taille 3 représentant c
 Dans le cas ou l'on présente 120 exemples:
 
 Le résultat de $tf.matmul(x,W)$ est un tenseur de dimension 2, de taille (120, 3).
-On lui ajoute le tenseur de biais, de dimension 1, et de taille 3.
-La réussite opérationnelle de cette opération nous surprend.
-Il serait opportun de comprendre comment l'addition de tenseur fonctionne. Cela échappe un peu aux rédacteurs de ce rapport mais on y travaille...Voyons la suite...
+
+On lui ajoute le tenseur de biais, de dimension 1, et de taille 3. La réussite opérationnelle de cette opération est intéressante \footnote{ Elle est due au concept de broadcasting. voir https://docs.scipy.org/doc/numpy/user/basics.broadcasting.html }
 
 A partir de ces scores, on calcule les probabilités $y$, qui sont toujours un tenseur d'ordre 2, de taille (120, 3)
 
 \verb+y_+, le hot vector correspondant aux labels est lui aussi un tenseur d'ordre 2, de taille (120,3).
 
-La multiplication impliquée dans le calcul de l'entropie croisée est donc a priori une multiplication point à point.
+La multiplication impliquée dans le calcul de l'entropie croisée est une multiplication point à point.
 
 \verb+tf.reduce_sum+ doit calculer l'entropie pour un exemple. Il opère bien sur la direction 1 (il somme les 3 sorties). Sa sortie est un tenseur d'ordre 1 de taille (120).
 
